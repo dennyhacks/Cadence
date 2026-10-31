@@ -1,129 +1,132 @@
 # Cadence
 
-Subscription management and recurring billing for Brightloop Software. Products, plans, quotations, subscriptions, invoices, payments and a finance dashboard, in one place.
+**Subscription billing that runs itself.** Cadence is a complete subscription management system for Brightloop Software: products and plans, quotations, subscriptions, automatic invoices, payments and a live finance dashboard, with a customer portal on top. Built solo for the Odoo hackathon.
 
-**Stack:** Node.js + Express, MySQL (`mysql2`, plain SQL migrations), React + Vite + Tailwind. Sign-in is built in (bcrypt passwords, signed httpOnly cookie sessions), and every screen reads from the database. Nothing needs the internet, so it runs fully offline.
+### 🔗 Live demo: https://cadence-odoo.vercel.app
 
-## Run it locally
+Open it, sign in with any account below, and click around. Everything you see comes from a real MySQL database.
 
-You need Node.js 20.19+ (or 22+) and a running MySQL server.
+| Role | Email | Password | What you get |
+| --- | --- | --- | --- |
+| **Admin** | `admin@cadence.test` | `Admin@12345` | Everything, including taxes, discounts and staff |
+| **Staff** | `staff@cadence.test` | `Staff@12345` | Catalogue, subscriptions, invoices, payments, dashboard |
+| **Customer** | `customer@cadence.test` | `Customer@12345` | Their own subscriptions and invoices, and online payment |
+
+Two more demo customers, `kite@cadence.test` and `orbit@cadence.test`, use `Customer@12345`. Anyone can also create a new customer account from **Sign up** (it asks for a company name).
+
+**Test card for paying an invoice:** `4242 4242 4242 4242`, any future date, any 3 digits. It is test mode, so no money moves.
+
+---
+
+## Why it stands out
+
+- **It cannot bill anyone twice.** The database itself allows one invoice per subscription and billing period, so even two billing runs at the same instant cannot create a duplicate. Missed periods are caught up automatically.
+- **Prices can't be tampered with.** The server works out every price from the product and its variant. The browser never sends one.
+- **Fast with real volume.** Every page answers in under two seconds with thousands of subscriptions. At **20,000 subscriptions and about 79,000 invoices the slowest page took about 110 ms**, because totals are added up in SQL, lists are paginated and the right columns are indexed.
+- **Money is exact.** Whole-cent maths and `DECIMAL` storage, so totals never show floating point surprises.
+- **Two payments at once can't overpay an invoice.** The invoice row is locked while a payment is recorded.
+- **Tested against a real database.** 138 automated API tests pass, plus 18 speed tests that run on large data.
+- **Customers only ever see their own data.** The server checks the role on every route and filters by the customer. Someone else's invoice simply answers "not found".
+
+## Everything in the brief, done
+
+| Area | What Cadence does |
+| --- | --- |
+| **Sign in** | Sign in, sign up, forgot and reset password by email (single-use link, 60 minutes), strong password rules checked in the browser and again on the server, three roles |
+| **Products** | Name, type, sales price, cost price, notes, and variants (for example Brand: Odoo adds 560) |
+| **Plans** | Price, billing period (daily, weekly, monthly, yearly), minimum quantity, availability dates, and per-plan rules for closing on its own, closing early, pausing and renewing |
+| **Taxes** | Set by the admin, calculated automatically on the amount after discount, can apply to every new line |
+| **Discounts** | Admin only. Fixed or percentage, minimum purchase or quantity, start and end dates, usage limit. Apply to products or whole subscriptions, show up on the next invoice by themselves, and stop when they expire or run out |
+| **Quotation templates** | A plan and product lines, valid for a set number of days |
+| **Subscriptions** | Own number, customer, plan, dates, payment terms and priced lines. Status flows Draft, Quotation, Confirmed, Active, Closed, visible to the whole team |
+| **Customer portal** | Customers start a subscription from a template, confirm it, and pause, resume, close or renew when the plan allows |
+| **Invoices** | Created automatically from active subscriptions with customer details, lines, taxes and totals. Confirm, cancel, send and print. Draft, Confirmed, Paid |
+| **Payments** | Method, amount, date and note against the right invoice, with paid, outstanding and overdue totals |
+| **Finance dashboard** | Active subscriptions, invoiced, collected, outstanding, overdue, charts, filters by period and plan, and a table view |
+| **Quality** | Real database data, responsive down to phone width, one colour scheme, a clear message on every form field, role-based menus |
+
+## And a few things beyond it
+
+- 💳 **Customers can pay online.** **Pay now** on any confirmed invoice, in test mode with the published test cards. Card numbers are never stored.
+- 🔔 **Overdue reminders.** One click for the team, and the billing job also sends one automatically, at most once a week per invoice.
+- 📈 **Recurring revenue.** Monthly recurring revenue, yearly run rate, churn and a three-month forecast on the dashboard.
+- 🔎 **Search.** One box finds subscriptions, invoices, products and plans.
+- 📤 **CSV export** of invoices and payments, safe to open in a spreadsheet.
+- ✨ **An interactive landing page** with a guided product tour and a small pixel-art night street.
+- 🌐 **Live online**, with working password-reset email.
+
+## Take the 3 minute tour
+
+1. **Admin:** open the **Overview**. Change the plan and period filters and watch the numbers move. Try the search box.
+2. **Catalogue:** open a product with a variant, a plan (see its four rules), and the discounts page.
+3. **Subscriptions:** create one from a template, then walk it through Send quotation, Confirm and Activate.
+4. **Invoices:** press **Generate due invoices**. It tells you nothing is due, because nothing is billed twice. Open an overdue invoice, record a payment and print it.
+5. **Customer:** sign out and sign in as the customer. See only their own data, and pay an invoice with the test card.
+6. **Phone:** make the window narrow and the menu turns into a drawer.
+
+## How the important parts work
+
+**Billing.** Each subscription bills period number `next_period_index`, counted from its start date, so a subscription that starts on the 31st never drifts to the 28th for good. Billing starts when a subscription becomes active, skips periods while it is paused, and stops at its expiry date. A job runs when the server starts and every hour (daily on Vercel), and the **Generate due invoices** button runs the same job on demand. Repeating it is always safe.
+
+**Discounts and tax.** Discounts are chosen automatically, stack in order, and come off before tax. A use is claimed with one atomic database update that checks the limit, so two invoices at once cannot both take the last use. Cancelling an invoice gives the use back.
+
+**Payments.** Only confirmed invoices accept payments, and never more than what is owed. The invoice shows paid, outstanding and overdue.
+
+**Security.** bcrypt password hashes, a signed httpOnly session cookie, hashed single-use reset tokens, rate limits on sign in, sign up and password reset, and server-side validation of everything the browser sends.
+
+## Run it on your own machine
+
+You need Node.js 22 (20.19 or newer works) and a running MySQL server.
 
 ```bash
-# 1. Install everything
-npm run setup
-
-# 2. Add your MySQL details
-#    Copy server/.env.example to server/.env, then set DB_USER and DB_PASSWORD.
-
-# 3. Create the database, tables and demo data
-npm run db:setup
-
-# 4. Start the API (port 4000) and the app (port 5173)
-npm run dev
+npm run setup          # install everything
+# copy server/.env.example to server/.env and set DB_USER and DB_PASSWORD
+npm run db:setup       # create the tables and load the demo data
+npm run dev            # API on port 4000, app on http://localhost:5173
 ```
-
-Open http://localhost:5173. Visitors who are not signed in land on a front page that explains the product, with buttons to sign in or create an account.
 
 | Command | What it does |
 | --- | --- |
-| `npm run db:reset` | Wipes the database and loads the demo data again |
 | `npm test` | Runs the API tests against the database |
-| `npm run build` | Builds the app for production (the API then serves it on its own port) |
-| `npm run db:seed:volume` | Adds thousands of subscriptions and invoices to check speed (see below) |
+| `npm run build` | Builds the app for production |
+| `npm run db:reset` | Wipes the database and loads the demo data again |
+| `npm run db:seed:volume` | Adds thousands of subscriptions and invoices to check speed (`-- 20000` for 20,000) |
 
-### Demo accounts
-
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@cadence.test` | `Admin@12345` |
-| Staff | `staff@cadence.test` | `Staff@12345` |
-| Customer | `customer@cadence.test` | `Customer@12345` |
-
-Two more customers, `kite@cadence.test` and `orbit@cadence.test`, both use `Customer@12345`. Type them on the sign-in page.
-
-The demo data is only for trying things out. It has products with variants, plans, taxes, discounts in every state, quotation templates, subscriptions in every status, and nine invoices that are paid, part paid, overdue or still draft.
+Without `SMTP_HOST` in `server/.env`, reset links and invoice emails are printed in the API console. Fill in the `SMTP_*` settings to send real email (a Gmail app password works).
 
 ## Put it online
 
-`DEPLOY.md` explains how to host it on Vercel with a hosted MySQL database.
+Cadence runs on **Vercel** (the React app and the API as a serverless function) with a hosted MySQL database such as TiDB Cloud or Aiven.
 
-## What each role can do
+1. Create a hosted MySQL database and copy its connection URL.
+2. Put `DATABASE_URL`, `DB_SSL=true` and `BCRYPT_ROUNDS=12` in `server/.env.remote`, then run `npm run db:setup:remote` once.
+3. In Vercel, set these Production variables: `DATABASE_URL`, `DB_SSL`, `JWT_SECRET`, `COOKIE_SECURE=true`, `CRON_SECRET` and `CLIENT_URL` (the site's address). Add `SMTP_*` and `MAIL_FROM` for real email.
+4. Run `vercel --prod`, or push to the connected branch.
 
-| | Admin | Staff | Customer |
-| --- | :-: | :-: | :-: |
-| Finance dashboard | yes | yes | |
-| Products, plans, quotation templates | yes | yes | |
-| Taxes | yes | | |
-| Discounts | yes | | |
-| Add staff | yes | | |
-| Subscriptions | all | all | their own |
-| Invoices | all | all | their own, confirmed or paid |
-| Record payments | yes | yes | |
+`vercel.json` sends every `/api/...` request to the Express app and schedules the billing job once a day. Open `/api/health` to check it. It answers `{"ok":true}`.
 
-Customers sign up on their own and can keep their company, phone and billing address under **My details**. These are copied onto each new invoice as "billed to". They can start a subscription from a quotation template, confirm it, and pause, resume, close or renew it when the plan allows.
+## Built with
 
-## How it works
-
-**Products and plans.** A product has a name, type, sales price, cost price, notes and variants. A variant adds an amount to the price (Brand: Odoo adds 560). A plan has a price, a billing period (daily, weekly, monthly or yearly), a minimum quantity and the dates it is available. Per plan, the admin decides whether subscriptions close on their own at the end date, can be closed early, paused or renewed. On a plan that closes on its own, a subscription takes the plan's end date as its expiry and cannot outlast it.
-
-**Subscriptions.** Each has its own number, customer, plan, start and expiry dates, payment terms and lines (product, quantity, unit price, taxes, amount). Status moves Draft, Quotation, Confirmed, Active, Closed and is shown to the whole team. The server sets every price, so a client can never send its own. A subscription total is its lines plus the plan price once per period.
-
-**Taxes and discounts.** The admin sets tax rules and they are calculated automatically, on the amount after discount. A tax marked "apply automatically" is added to every new line, so it cannot be forgotten, and can still be unticked on one line. Discounts (admin only) are a fixed amount or a percentage, with a minimum purchase or quantity, start and end dates and a usage limit. They apply to specific products or to whole subscriptions, show up on the next invoice by themselves, and stop when they expire or run out. Discounts apply to product lines, never the plan price.
-
-**Invoices.** Invoices are created from active subscriptions with customer details, lines, taxes and totals filled in. The team can confirm, cancel, send and print them (Draft, Confirmed, Paid). Nothing is billed twice or skipped:
-
-- A job runs when the server starts and then every hour, and the **Generate due invoices** button runs the same job on demand.
-- It catches up any period that was missed, so a day the server was off is covered.
-- The database allows one invoice per subscription and billing period, so even simultaneous runs cannot bill twice.
-- Billing starts when a subscription becomes active, skips periods while it is paused, and stops at its expiry date.
-
-**Paying online.** A customer opens a confirmed invoice (or presses **Pay now** in their list) and pays by card. This runs in **test mode**: only the published test cards work (4242 4242 4242 4242 approves, 4000 0000 0000 0002 is declined), no money moves, and the card number is never stored, only its last four digits in the payment note.
-
-**Reminders.** On an overdue invoice the team can press **Send reminder**, which emails the customer a link to view and pay it and records when the last reminder went out. The hourly job also sends one by itself, at most once a week per overdue invoice (addresses ending in `.test` are skipped, since they can never be delivered).
-
-**Search.** The team gets a search box in the top bar. It finds subscriptions, invoices, products and plans, and a customer's name or email finds their subscriptions and invoices.
-
-**Exports.** The invoice and payment lists each have an **Export CSV** button for the team. The invoice export follows the status filter, and text that could run as a spreadsheet formula is made safe.
-
-**Payments.** Record a payment against a confirmed invoice with method, amount, date and a note. It can never exceed what is owed, and two payments recorded together cannot overpay. The invoice list shows paid, outstanding and overdue.
-
-**Finance dashboard.** Active subscriptions, invoiced, collected, outstanding and overdue, a chart of invoiced versus collected by month (with a table view), subscriptions by status, a by-plan summary, the longest overdue invoices and the latest payments. Below those sit monthly recurring revenue (every plan's billing turned into a monthly figure), the yearly run rate, churn (subscriptions closed in the period) and a three-month forecast that assumes nothing changes from today. Filter by period and plan.
-
-## Speed
-
-Every page must answer in under two seconds with thousands of subscriptions. Totals are added up in SQL, lists are paginated, and the queries use indexes. To see it yourself:
-
-```bash
-npm run db:seed:volume          # about 5,000 subscriptions and 20,000 invoices
-npm run db:seed:volume -- 20000 # or 20,000 subscriptions
-npm test                        # the speed tests now run too
-npm run db:reset                # back to the clean demo data
-```
-
-With 20,000 subscriptions and about 79,000 invoices, the slowest page we measured took about 110 ms.
-
-## Rules the app enforces
-
-- One account per email address (case-insensitive).
-- Passwords need more than 8 characters, an uppercase letter, a lowercase letter and a special character, checked in the browser and again on the server.
-- Reset links work once and expire after 60 minutes. Without `SMTP_HOST` in `server/.env`, links and invoice emails are printed in the API console instead of being sent. For real email, fill in the `SMTP_*` settings (a Gmail app password works).
-- Every form shows a message per field, and the server checks everything again, whatever the browser sends.
-
-## Project layout
+**Node.js 22, Express 5, MySQL** (`mysql2` with plain SQL migrations, so the schema stays visible and nothing needs downloading), **zod** for validation, **React 19, React Router 7, Vite and Tailwind 4**. Fonts are bundled, so the app works offline. Hosted on Vercel with TiDB Cloud.
 
 ```
-client/   React app: pages, components, layout and navigation per role
+client/    React app: pages, components, layout and role-based navigation
 server/
   src/
     routes/      API endpoints, one file per area
-    services/    billing, subscriptions and dashboard logic
+    services/    billing, subscriptions, dashboard, search
     utils/       money maths, invoice maths, mail
-    validation/  input rules (zod)
-  db/            SQL migrations, demo seed, volume seed
+    validation/  input rules
+  db/            SQL migrations, demo data, volume data
   test/          API tests
+api/             Vercel entry point
 docs/            the hackathon brief
 ```
 
-## Design notes
+## What's next
 
-A dark interface with one lime accent: near-black surfaces, soft borders, pill-shaped buttons and tags, and big clean headings in Outfit, with Instrument Sans for tables and forms (both bundled, so the app works offline). The invoice page prints as dark text on white. Pages work from 390 px wide up, every input has a label, keyboard focus is visible, and motion respects the reduced-motion setting. The chart colours were checked for colour-blind separation and contrast on the dark surface.
+PDF invoices, a status history timeline, customers adding their own add-ons, and Razorpay Checkout (already built on the `feature/razorpay` branch, ready to switch on with test keys).
+
+---
+
+Built by [Denny Mathew](https://github.com/dennyhacks).
