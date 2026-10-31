@@ -229,6 +229,16 @@ describe('roles', () => {
     assert.equal(res.status, 403);
   });
 
+  test('the admin can filter the user list by role', async () => {
+    const admin = await call('POST', '/api/auth/login', { body: { email: 'admin@cadence.test', password: 'Admin@12345' } });
+    const res = await call('GET', '/api/users?role=staff', { cookie: admin.cookie });
+    assert.equal(res.status, 200);
+    assert.ok(res.data.users.length > 0);
+    assert.ok(res.data.users.every((u) => u.role === 'staff'));
+    const bad = await call('GET', '/api/users?role=owner', { cookie: admin.cookie });
+    assert.equal(bad.status, 400);
+  });
+
   test('only the admin can list users', async () => {
     assert.equal((await call('GET', '/api/users', { cookie: customerCookie })).status, 403);
     const list = await call('GET', '/api/users', { cookie: adminCookie });

@@ -6,7 +6,7 @@ Read this first. It holds the owner's rules, the decisions already made and the 
 
 Cadence is a subscription management system for Brightloop Software, built solo for an Odoo hackathon. The brief is `docs/Subscription_Management_System.pdf`. It is the source of truth: follow it word for word and add no extra features unless the owner asks.
 
-- Owner: Praneet (solo team)
+- Owner: Denny (solo team)
 - GitHub: `dennyhacks/Cadence`
 - Deadline: 4pm IST, Saturday 31 October 2026
 
@@ -71,10 +71,10 @@ To check the UI, install `puppeteer-core` and `@sparticuz/chromium` outside the 
 
 ## Status and plan
 
-Branches on GitHub: `setup/init` (README only) and `feature/login`. Nothing is on `main` yet.
+Branches on GitHub: `setup/init` (README only), `feature/login` and `feature/dashboard`. Nothing is on `main` yet.
 
 - [x] **Phase 1, login (`feature/login`):** sign in, sign up, forgot and reset password (emailed link, printed to the console without SMTP), roles, admin-only staff creation API (`POST /api/users/staff`, `GET /api/users`), placeholder landing page at `/`.
-- [ ] **Phase 2, dashboard shell (`feature/dashboard`):** sidebar and top bar with a different menu per role, an admin screen to add staff (the API exists), and a customer portal frame that shows only their own subscriptions and invoices.
+- [x] **Phase 2, dashboard shell (`feature/dashboard`):** sidebar and top bar with a different menu per role (`client/src/layout/nav.js`), admin Staff screen (list and add, `GET /api/users?role=staff`), customer portal frame (Subscriptions and Invoices only). Later-phase screens are `Section` placeholders; replace them with real pages in their phase and keep the same routes.
 - [ ] **Phase 3, products and plans:**
   - Product: name, type, sales price, cost price, notes, and variants (for example by brand: choosing the Odoo brand adds 560 to the price).
   - Plan: price, billing period (daily, weekly, monthly or yearly), minimum quantity, and the dates it is available.

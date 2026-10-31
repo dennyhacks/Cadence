@@ -11,9 +11,17 @@ const router = Router();
 // Only the admin can see the user list or add a member of staff.
 router.use(requireRole('admin'));
 
-router.get('/', async (_req, res) => {
+const ROLES = ['admin', 'staff', 'customer'];
+
+// Optional ?role=staff narrows the list to one role.
+router.get('/', async (req, res) => {
+  const { role } = req.query;
+  if (role !== undefined && !ROLES.includes(role)) {
+    throw new HttpError(400, 'Role must be admin, staff or customer.', { role: 'Role must be admin, staff or customer.' });
+  }
   const users = await query(
-    'SELECT id, name, email, role, is_active, created_at FROM users ORDER BY created_at DESC, id DESC'
+    `SELECT id, name, email, role, is_active, created_at FROM users ${role ? 'WHERE role = ?' : ''} ORDER BY created_at DESC, id DESC`,
+    role ? [role] : []
   );
   res.json({ users });
 });
