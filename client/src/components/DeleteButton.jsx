@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 /** Two-step delete: the first click asks, the second confirms. */
-export default function DeleteButton({ onConfirm, label, busy }) {
+export default function DeleteButton({ onConfirm, label, busy, confirmLabel = 'Yes, delete', message = 'This cannot be undone.', keepLabel = 'Keep it' }) {
   const [asking, setAsking] = useState(false);
   if (!asking) {
     return (
@@ -12,12 +12,12 @@ export default function DeleteButton({ onConfirm, label, busy }) {
   }
   return (
     <span className="flex flex-wrap items-center gap-2" role="group" aria-label="Confirm delete">
-      <span className="text-sm text-danger">This cannot be undone.</span>
+      <span className="text-sm text-danger">{message}</span>
       <button type="button" disabled={busy} onClick={onConfirm} className="rounded-lg bg-danger px-4 py-2.5 font-semibold text-white disabled:opacity-70">
-        Yes, delete
+        {confirmLabel}
       </button>
       <button type="button" onClick={() => setAsking(false)} className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">
-        Keep it
+        {keepLabel}
       </button>
     </span>
   );

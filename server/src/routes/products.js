@@ -33,13 +33,21 @@ const parseId = (raw) => {
   return id;
 };
 
-router.get('/', async (_req, res) => {
+// ?variants=1 also returns each product's variants, for pickers that need them.
+router.get('/', async (req, res) => {
   const rows = await query(
     `SELECT p.*, COUNT(v.id) AS variant_count
        FROM products p LEFT JOIN product_variants v ON v.product_id = p.id
       GROUP BY p.id ORDER BY p.name`
   );
-  res.json({ products: rows.map((r) => ({ ...toProduct(r), variant_count: Number(r.variant_count) })) });
+  const products = rows.map((r) => ({ ...toProduct(r), variant_count: Number(r.variant_count) }));
+  if (req.query.variants) {
+    const variants = await query('SELECT product_id, attribute, value, extra_price FROM product_variants ORDER BY attribute, value');
+    for (const p of products) {
+      p.variants = variants.filter((v) => v.product_id === p.id).map((v) => ({ attribute: v.attribute, value: v.value, extra_price: Number(v.extra_price) }));
+    }
+  }
+  res.json({ products });
 });
 
 router.get('/:id', async (req, res) => {

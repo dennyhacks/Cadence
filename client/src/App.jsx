@@ -17,6 +17,11 @@ import Taxes from './pages/Taxes.jsx';
 import TaxForm from './pages/TaxForm.jsx';
 import Discounts from './pages/Discounts.jsx';
 import DiscountForm from './pages/DiscountForm.jsx';
+import Templates from './pages/Templates.jsx';
+import TemplateForm from './pages/TemplateForm.jsx';
+import Subscriptions from './pages/Subscriptions.jsx';
+import SubscriptionDetail from './pages/SubscriptionDetail.jsx';
+import SubscriptionForm from './pages/SubscriptionForm.jsx';
 
 const TEAM = ['admin', 'staff'];
 
@@ -41,17 +46,8 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/" element={<Landing />} />
-          <Route
-            path="/subscriptions"
-            element={
-              <Section
-                title="Subscriptions"
-                customerTitle="My subscriptions"
-                intro="Every subscription, from draft to closed."
-                customerIntro="Your subscriptions and where each one stands."
-              />
-            }
-          />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
           <Route
             path="/invoices"
             element={
@@ -71,7 +67,11 @@ export default function App() {
             <Route path="/plans" element={<Plans />} />
             <Route path="/plans/new" element={<PlanForm />} />
             <Route path="/plans/:id" element={<PlanForm />} />
-            <Route path="/templates" element={<Section title="Quotation templates" intro="Reusable quotes with a plan and product lines." />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/templates/new" element={<TemplateForm />} />
+            <Route path="/templates/:id" element={<TemplateForm />} />
+            <Route path="/subscriptions/new" element={<SubscriptionForm />} />
+            <Route path="/subscriptions/:id/edit" element={<SubscriptionForm />} />
             <Route path="/payments" element={<Section title="Payments" intro="Payments recorded against invoices." />} />
           </Route>
 
