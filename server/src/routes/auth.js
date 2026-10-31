@@ -32,16 +32,15 @@ const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex'
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', config.bcryptRounds);
 
 router.post('/signup', signupLimiter, async (req, res) => {
-  const { name, email, password } = parse(signupSchema, req.body);
+  const { name, email, company, password } = parse(signupSchema, req.body);
   const hash = await bcrypt.hash(password, config.bcryptRounds);
 
   let id;
   try {
-    const result = await query("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'customer')", [
-      name,
-      email,
-      hash,
-    ]);
+    const result = await query(
+      "INSERT INTO users (name, email, company, password_hash, role) VALUES (?, ?, ?, ?, 'customer')",
+      [name, email, company, hash]
+    );
     id = result.insertId;
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {

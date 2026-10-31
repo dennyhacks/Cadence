@@ -5,12 +5,12 @@ import AuthLayout from '../components/AuthLayout.jsx';
 import { Field, PasswordField } from '../components/Field.jsx';
 import PasswordRules from '../components/PasswordRules.jsx';
 import { Button, ErrorAlert, linkClass } from '../components/ui.jsx';
-import { compact, validateConfirm, validateEmail, validateName, validateNewPassword } from '../validation.js';
+import { compact, validateCompany, validateConfirm, validateEmail, validateName, validateNewPassword } from '../validation.js';
 
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ name: '', email: '', company: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,6 +26,7 @@ export default function Signup() {
     const found = compact({
       name: validateName(form.name),
       email: validateEmail(form.email),
+      company: validateCompany(form.company),
       password: validateNewPassword(form.password),
       confirm: validateConfirm(form.password, form.confirm),
     });
@@ -34,7 +35,7 @@ export default function Signup() {
 
     setBusy(true);
     try {
-      await signup({ name: form.name.trim(), email: form.email.trim(), password: form.password });
+      await signup({ name: form.name.trim(), email: form.email.trim(), company: form.company.trim(), password: form.password });
       navigate('/', { replace: true });
     } catch (err) {
       setErrors(compact(err.errors || {}));
@@ -77,6 +78,14 @@ export default function Signup() {
           value={form.email}
           onChange={set('email')}
           error={errors.email}
+        />
+        <Field
+          id="company"
+          label="Company"
+          autoComplete="organization"
+          value={form.company}
+          onChange={set('company')}
+          error={errors.company}
         />
         <div>
           <PasswordField
