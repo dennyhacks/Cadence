@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+/* Cadence design tokens. Pine is the brand, leaf is the action color, signal is used sparingly. */
+@theme {
+  --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-pine-950: #072523;
+  --color-pine-900: #0c332f;
+  --color-pine-800: #124540;
+  --color-pine-700: #17564f;
+  --color-pine-300: #8fb8b0;
+  --color-pine-200: #bcd5cf;
+
+  --color-leaf-50: #e6f3ef;
+  --color-leaf-600: #0e7c6b;
+  --color-leaf-700: #0b665a;
+
+  --color-paper: #f2f5f3;
+  --color-line: #d3ddd8;
+  --color-ink: #14201e;
+  --color-muted: #55655f;
+  --color-signal: #e3a72f;
+  --color-danger: #b3382c;
+  --color-danger-bg: #fbeeec;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-leaf-600);
+    outline-offset: 2px;
+  }
+}
+
+/* The billing dial draws itself once on load, then stays still. */
+@keyframes dial-draw {
+  from {
+    stroke-dashoffset: var(--dial-from);
+  }
+  to {
+    stroke-dashoffset: var(--dial-to);
+  }
+}
+@keyframes dial-dot {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.dial-arc {
+  animation: dial-draw 1.8s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+.dial-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dial-dot 0.35s ease-out 1.55s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dial-arc,
+  .dial-dot {
+    animation: none;
+  }
+}
