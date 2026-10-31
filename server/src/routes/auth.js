@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { query, withTransaction } from '../db.js';
 import { HttpError } from '../utils/errors.js';
 import { sendResetEmail } from '../utils/mailer.js';
+import { afterReply } from '../utils/background.js';
 import { clearSessionCookie, publicUser, setSessionCookie } from '../middleware/auth.js';
 import { forgotSchema, loginSchema, parse, resetSchema, signupSchema } from '../validation/schemas.js';
 
@@ -92,8 +93,8 @@ router.post('/forgot-password', forgotLimiter, async (req, res) => {
       [user.id, sha256(token), config.resetMinutes]
     );
     const link = `${config.clientUrl}/reset-password?token=${token}`;
-    // Not awaited: the response is the same speed whether or not the account exists.
-    sendResetEmail(user, link).catch((err) => console.error('Could not send reset email:', err.message));
+    // Sent after the reply, so the response is the same speed whether or not the account exists.
+    afterReply(sendResetEmail(user, link), 'Sending the reset email');
   }
 
   // Same answer either way, so this form cannot be used to find out who has an account.
