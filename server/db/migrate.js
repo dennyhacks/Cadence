@@ -12,7 +12,8 @@ async function main() {
   const { database, ...server } = config.db;
 
   // Create the database if the MySQL user is allowed to. If it already exists, this does nothing.
-  const root = await mysql.createConnection(server);
+  const ssl = config.dbSsl ? { ssl: config.dbSslOptions } : {};
+  const root = await mysql.createConnection({ ...server, ...ssl });
   try {
     await root.query(
       `CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
@@ -22,7 +23,7 @@ async function main() {
   }
   await root.end();
 
-  const db = await mysql.createConnection({ ...config.db, multipleStatements: true });
+  const db = await mysql.createConnection({ ...config.db, ...ssl, multipleStatements: true });
   try {
     if (fresh) {
       const [tables] = await db.query('SHOW TABLES');

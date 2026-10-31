@@ -4,8 +4,10 @@ import { config } from './config.js';
 // timezone 'Z' keeps every date in UTC, so the server and database never disagree.
 export const pool = mysql.createPool({
   ...config.db,
+  ...(config.dbSsl && { ssl: config.dbSslOptions }),
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: config.dbPoolSize,
+  enableKeepAlive: true,
   timezone: 'Z',
   charset: 'utf8mb4',
 });
