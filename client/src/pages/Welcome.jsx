@@ -5,7 +5,7 @@ import Logo from '../components/Logo.jsx';
 import CycleDial from '../components/CycleDial.jsx';
 import Icon from '../components/Icon.jsx';
 import PixelCity from '../components/PixelCity.jsx';
-import { CountUp, CursorRing, ModuleTour, Tilt, useReveal, useSpotlight } from '../components/landing.jsx';
+import { CountUp, CursorRing, ModuleTour, Tilt, useActiveSection, useReveal, useSmoothAnchors, useSpotlight } from '../components/landing.jsx';
 
 // The public front page: what Cadence is, what it does, and a way in. Everything here is explanation and
 // illustration. The real data lives behind the sign-in.
@@ -120,10 +120,19 @@ function Section({ id, title, children, className = '' }) {
   );
 }
 
+const NAV = [
+  ['problem', 'The problem'],
+  ['how', 'How it works'],
+  ['features', 'Features'],
+  ['roles', 'Who it is for'],
+];
+
 export default function Welcome() {
   const { user } = useAuth();
   const spotlight = useSpotlight();
   useReveal();
+  useSmoothAnchors();
+  const active = useActiveSection(NAV.map(([id]) => id));
 
   useEffect(() => {
     document.title = 'Cadence · Subscription billing';
@@ -140,10 +149,12 @@ export default function Welcome() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 rounded-full border border-white/10 bg-paper/70 px-4 py-2 backdrop-blur-xl sm:px-6">
           <Link to="/welcome" aria-label="Cadence, subscription billing, home"><Logo light /></Link>
           <nav aria-label="Page sections" className="hidden items-center gap-7 text-sm text-pine-200 md:flex">
-            <a href="#problem" className="hover:text-white">The problem</a>
-            <a href="#how" className="hover:text-white">How it works</a>
-            <a href="#features" className="hover:text-white">Features</a>
-            <a href="#roles" className="hover:text-white">Who it is for</a>
+            {NAV.map(([id, label]) => (
+              <a key={id} href={`#${id}`} aria-current={active === id ? 'location' : undefined} className={`relative py-1 transition-colors duration-300 hover:text-white ${active === id ? 'text-white' : ''}`}>
+                {label}
+                <span aria-hidden="true" className={`absolute inset-x-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-leaf-600 transition-transform duration-500 ease-out ${active === id ? 'scale-x-100' : 'scale-x-0'}`} />
+              </a>
+            ))}
           </nav>
           <div className="flex items-center gap-2">
             {user ? (

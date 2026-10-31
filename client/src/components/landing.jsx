@@ -311,3 +311,77 @@ export function ModuleTour() {
     </div>
   );
 }
+
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const HEADER_GAP = 92; // the floating menu sits over the top of the page
+
+/** Makes in-page links (#problem and so on) glide to their section instead of jumping. Reduced motion keeps the jump. */
+export function useSmoothAnchors() {
+  useEffect(() => {
+    let frame = 0;
+    const cancel = () => cancelAnimationFrame(frame);
+
+    function onClick(e) {
+      const link = e.target.closest?.('a[href^="#"]');
+      if (!link || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      const target = document.getElementById(link.getAttribute('href').slice(1));
+      if (!target) return;
+
+      e.preventDefault();
+      history.replaceState(null, '', link.getAttribute('href'));
+      const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - (target.id === 'story' ? 0 : HEADER_GAP));
+
+      // A hidden tab pauses animation frames, so it jumps instead of waiting for a glide that never runs.
+      if (reducedMotion() || document.hidden) {
+        window.scrollTo(0, top);
+        target.focus?.({ preventScroll: true });
+        return;
+      }
+      cancel();
+      const from = window.scrollY;
+      const distance = top - from;
+      const duration = Math.min(1100, Math.max(500, Math.abs(distance) * 0.5));
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        window.scrollTo(0, from + distance * easeInOutCubic(t));
+        if (t < 1) frame = requestAnimationFrame(step);
+      };
+      frame = requestAnimationFrame(step);
+    }
+
+    // Scrolling by hand with the wheel or a finger stops the glide straight away.
+    document.addEventListener('click', onClick);
+    window.addEventListener('wheel', cancel, { passive: true });
+    window.addEventListener('touchstart', cancel, { passive: true });
+    return () => {
+      cancel();
+      document.removeEventListener('click', onClick);
+      window.removeEventListener('wheel', cancel);
+      window.removeEventListener('touchstart', cancel);
+    };
+  }, []);
+}
+
+/** The id of the section nearest the middle of the screen, so the menu can show where you are. */
+export function useActiveSection(ids) {
+  const [active, setActive] = useState('');
+  useEffect(() => {
+    if (!('IntersectionObserver' in window)) return undefined;
+    const seen = new Map();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) seen.set(entry.target.id, entry.isIntersecting);
+        setActive(ids.find((id) => seen.get(id)) ?? '');
+      },
+      { rootMargin: '-35% 0px -55% 0px' }
+    );
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return active;
+}
