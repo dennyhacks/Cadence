@@ -134,6 +134,13 @@ export default function Overview() {
             <Figure label="Overdue now" value={formatMoney(rev.overdue)} note={`${rev.overdue_count} invoice${rev.overdue_count === 1 ? '' : 's'} past due`} tone={rev.overdue_count ? 'text-danger' : ''} to="/invoices?status=overdue" />
           </dl>
 
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Recurring revenue">
+            <Figure label="Monthly recurring revenue" value={formatMoney(data.recurring.mrr)} note="Active subscriptions, before tax" />
+            <Figure label="Yearly run rate" value={formatMoney(data.recurring.arr)} note="Monthly recurring revenue times 12" />
+            <Figure label="Churn in this period" value={`${data.recurring.churn_rate}%`} note={`${data.recurring.churned} subscription${data.recurring.churned === 1 ? '' : 's'} closed`} tone={data.recurring.churned ? 'text-danger' : ''} />
+            <Figure label="Forecast, next 3 months" value={formatMoney(data.recurring.forecast.reduce((t, m) => t + m.amount, 0))} note="If nothing changes from today" />
+          </dl>
+
           <section className="mt-6 rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="chart-heading">
             <h2 id="chart-heading" className="mb-1 font-display text-lg font-semibold">Invoiced and collected by month</h2>
             {empty ? <p className="py-10 text-center text-muted">No invoices or payments in this period. Try a longer one.</p> : <MonthlyChart months={data.months} />}

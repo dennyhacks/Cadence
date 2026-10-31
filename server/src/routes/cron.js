@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { timingSafeEqual } from 'node:crypto';
 import { config } from '../config.js';
 import { HttpError } from '../utils/errors.js';
-import { generateDueInvoices } from '../services/billing.js';
+import { generateDueInvoices, sendOverdueReminders } from '../services/billing.js';
 import { closeExpiredSubscriptions } from '../services/subscriptions.js';
 
 const router = Router();
@@ -17,7 +17,8 @@ router.get('/billing', async (req, res) => {
 
   const closed = await closeExpiredSubscriptions();
   const invoices = await generateDueInvoices();
-  res.json({ closed, ...invoices });
+  const reminders = await sendOverdueReminders();
+  res.json({ closed, ...invoices, reminders });
 });
 
 export default router;

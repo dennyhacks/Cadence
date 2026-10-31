@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
 import Icon from '../components/Icon.jsx';
+import SearchBox from '../components/SearchBox.jsx';
 import { navFor, ROLE_LABEL } from './nav.js';
 
 const linkClass = ({ isActive }) =>
@@ -101,6 +102,7 @@ export default function AppShell() {
             </button>
             <Logo className="lg:hidden" />
           </div>
+          {user.role !== 'customer' && <SearchBox />}
           <div className="flex items-center gap-3 text-sm">
             <div className="hidden text-right leading-tight sm:block">
               <p className="font-medium">{user.name}</p>

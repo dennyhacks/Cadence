@@ -2,7 +2,7 @@ import { config } from './config.js';
 import { pool, explainDbError } from './db.js';
 import { createApp } from './app.js';
 import { closeExpiredSubscriptions } from './services/subscriptions.js';
-import { generateDueInvoices } from './services/billing.js';
+import { generateDueInvoices, sendOverdueReminders } from './services/billing.js';
 
 try {
   await pool.query('SELECT 1');
@@ -25,6 +25,8 @@ async function dailyJob() {
     if (closed) console.log(`Closed ${closed} expired subscription(s).`);
     const { created, skipped } = await generateDueInvoices();
     if (created || skipped) console.log(`Billing: ${created} invoice(s) created${skipped ? `, ${skipped} to retry` : ''}.`);
+    const reminded = await sendOverdueReminders();
+    if (reminded) console.log(`Reminders: ${reminded} overdue invoice reminder(s) sent.`);
   } catch (err) {
     console.error('The daily billing job failed:', err.message);
   }

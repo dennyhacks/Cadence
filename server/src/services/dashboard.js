@@ -46,7 +46,7 @@ export async function buildDashboard(filters, now = new Date()) {
   const planArg = planId ? [planId] : [];
   const joinSub = 'JOIN subscriptions s ON s.id = i.subscription_id';
 
-  const [statusRows, invoicedRows, collectedRows, owed, overdueList, recent, planSubs, planInvoiced, planCollected, plans] = await Promise.all([
+  const [statusRows, invoicedRows, collectedRows, owed, overdueList, recent, planSubs, planInvoiced, planCollected, plans, recurPlan, recurLines, closedRows] = await Promise.all([
     query(`SELECT s.status, s.is_paused, COUNT(*) AS n FROM subscriptions s WHERE 1 = 1 ${onPlan} GROUP BY s.status, s.is_paused`, planArg),
     query(
       `SELECT DATE_FORMAT(i.invoice_date, '%Y-%m') AS month, SUM(i.total) AS amount, COUNT(*) AS n
@@ -91,7 +91,34 @@ export async function buildDashboard(filters, now = new Date()) {
       [from, to, ...planArg]
     ),
     query(`SELECT id, name, billing_period FROM plans ${planId ? 'WHERE id = ?' : ''} ORDER BY name`, planArg),
+    // What active, unpaused subscriptions bill each period (plan price, then product lines before tax).
+    query(
+      `SELECT p.billing_period, COUNT(*) AS n, SUM(s.plan_price) AS amount
+         FROM subscriptions s JOIN plans p ON p.id = s.plan_id
+        WHERE s.status = 'active' AND s.is_paused = 0 ${onPlan} GROUP BY p.billing_period`,
+      planArg
+    ),
+    query(
+      `SELECT p.billing_period, SUM(l.quantity * l.unit_price) AS amount
+         FROM subscriptions s JOIN plans p ON p.id = s.plan_id JOIN subscription_lines l ON l.subscription_id = s.id
+        WHERE s.status = 'active' AND s.is_paused = 0 ${onPlan} GROUP BY p.billing_period`,
+      planArg
+    ),
+    // A closed subscription is not edited again, so its last update is when it closed.
+    query(
+      `SELECT COUNT(*) AS n FROM subscriptions s WHERE s.status = 'closed' AND DATE(s.updated_at) BETWEEN ? AND ? ${onPlan}`,
+      [from, to, ...planArg]
+    ),
   ]);
+
+  // Monthly recurring revenue: every period's billing turned into a monthly figure.
+  const PER_MONTH = { daily: 30, weekly: 52 / 12, monthly: 1, yearly: 1 / 12 };
+  const linesBy = new Map(recurLines.map((r) => [r.billing_period, Number(r.amount)]));
+  const mrr = money(recurPlan.reduce((sum, r) => sum + (Number(r.amount) + (linesBy.get(r.billing_period) ?? 0)) * PER_MONTH[r.billing_period], 0));
+  const activeNow = recurPlan.reduce((sum, r) => sum + Number(r.n), 0);
+  const closedInRange = Number(closedRows[0].n);
+  const churnBase = activeNow + closedInRange;
+  const forecast = [1, 2, 3].map((k) => ({ month: monthOf(addMonths(`${monthOf(todayStr)}-01`, k)), amount: mrr }));
 
   // Subscriptions by status, with paused ones counted apart from active ones.
   const byStatus = { draft: 0, quotation: 0, confirmed: 0, active: 0, closed: 0 };
@@ -128,6 +155,13 @@ export async function buildDashboard(filters, now = new Date()) {
       overdue_count: Number(owed[0].overdue_count),
     },
     months,
+    recurring: {
+      mrr,
+      arr: money(mrr * 12),
+      churned: closedInRange,
+      churn_rate: churnBase ? Math.round((closedInRange / churnBase) * 1000) / 10 : 0,
+      forecast,
+    },
     by_plan: plans.map((p) => ({
       plan_id: p.id,
       name: p.name,

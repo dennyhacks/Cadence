@@ -440,3 +440,41 @@ export async function exportPaymentsCsv() {
     rows
   );
 }
+
+const REMINDER_EVERY_DAYS = 7;
+const REMINDERS_PER_RUN = 50;
+
+/**
+ * Emails customers about overdue invoices, at most once every 7 days per invoice. The invoice is claimed with a
+ * single update first, so two runs at once cannot send the same reminder twice. If the email fails the claim is
+ * undone and the next run tries again. Addresses ending in .test are reserved and can never be delivered, so they are skipped.
+ */
+export async function sendOverdueReminders({ now = new Date() } = {}) {
+  const todayStr = today(now);
+  const due = await query(
+    `SELECT id, number, customer_name, customer_email, total - amount_paid AS outstanding, ${day('due_date')} AS due_date, reminded_at
+       FROM invoices
+      WHERE status = 'confirmed' AND due_date < ? AND total - amount_paid > 0 AND customer_email NOT LIKE '%.test'
+        AND (reminded_at IS NULL OR reminded_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ${REMINDER_EVERY_DAYS} DAY))
+      ORDER BY due_date, id LIMIT ${REMINDERS_PER_RUN}`,
+    [todayStr]
+  );
+
+  let sent = 0;
+  for (const row of due) {
+    const claim = await query(
+      `UPDATE invoices SET reminded_at = UTC_TIMESTAMP()
+        WHERE id = ? AND status = 'confirmed' AND (reminded_at IS NULL OR reminded_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ${REMINDER_EVERY_DAYS} DAY))`,
+      [row.id]
+    );
+    if (claim.affectedRows === 0) continue;
+    try {
+      await sendReminderEmail({ ...row, outstanding: Number(row.outstanding) }, `${config.clientUrl}/invoices/${row.id}`);
+      sent += 1;
+    } catch (err) {
+      console.error(`Could not send the reminder for ${row.number}:`, err.message);
+      await query('UPDATE invoices SET reminded_at = ? WHERE id = ?', [row.reminded_at, row.id]);
+    }
+  }
+  return sent;
+}
