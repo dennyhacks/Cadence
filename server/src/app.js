@@ -20,6 +20,7 @@ import customerRoutes from './routes/customers.js';
 import invoiceRoutes from './routes/invoices.js';
 import paymentRoutes from './routes/payments.js';
 import dashboardRoutes from './routes/dashboard.js';
+import searchRoutes from './routes/search.js';
 import cronRoutes from './routes/cron.js';
 import profileRoutes from './routes/profile.js';
 
@@ -46,6 +47,7 @@ export function createApp() {
   app.use('/api/invoices', invoiceRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/search', searchRoutes);
   app.use('/api/cron', cronRoutes);
   app.use('/api/profile', profileRoutes);
   app.use('/api', notFound);

@@ -79,13 +79,15 @@ Customers sign up on their own and can keep their company, phone and billing add
 
 **Paying online.** A customer opens a confirmed invoice (or presses **Pay now** in their list) and pays by card. This runs in **test mode**: only the published test cards work (4242 4242 4242 4242 approves, 4000 0000 0000 0002 is declined), no money moves, and the card number is never stored, only its last four digits in the payment note.
 
-**Reminders.** On an overdue invoice the team can press **Send reminder**, which emails the customer a link to view and pay it and records when the last reminder went out.
+**Reminders.** On an overdue invoice the team can press **Send reminder**, which emails the customer a link to view and pay it and records when the last reminder went out. The hourly job also sends one by itself, at most once a week per overdue invoice (addresses ending in `.test` are skipped, since they can never be delivered).
+
+**Search.** The team gets a search box in the top bar. It finds subscriptions, invoices, products and plans, and a customer's name or email finds their subscriptions and invoices.
 
 **Exports.** The invoice and payment lists each have an **Export CSV** button for the team. The invoice export follows the status filter, and text that could run as a spreadsheet formula is made safe.
 
 **Payments.** Record a payment against a confirmed invoice with method, amount, date and a note. It can never exceed what is owed, and two payments recorded together cannot overpay. The invoice list shows paid, outstanding and overdue.
 
-**Finance dashboard.** Active subscriptions, invoiced, collected, outstanding and overdue, a chart of invoiced versus collected by month (with a table view), subscriptions by status, a by-plan summary, the longest overdue invoices and the latest payments. Filter by period and plan.
+**Finance dashboard.** Active subscriptions, invoiced, collected, outstanding and overdue, a chart of invoiced versus collected by month (with a table view), subscriptions by status, a by-plan summary, the longest overdue invoices and the latest payments. Below those sit monthly recurring revenue (every plan's billing turned into a monthly figure), the yearly run rate, churn (subscriptions closed in the period) and a three-month forecast that assumes nothing changes from today. Filter by period and plan.
 
 ## Speed
 
