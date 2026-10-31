@@ -9,6 +9,7 @@
     "db:migrate": "node db/migrate.js",
     "db:seed": "node db/seed.js",
     "db:seed:volume": "node db/seed-volume.js",
+    "mail:check": "node db/check-mail.js",
     "db:setup": "node db/migrate.js && node db/seed.js",
     "db:reset": "node db/migrate.js --fresh && node db/seed.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\""
