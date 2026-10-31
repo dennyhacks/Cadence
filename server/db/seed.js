@@ -32,6 +32,46 @@ const demoPlans = [
   ['Enterprise yearly', 19999, 'yearly', 5, '2026-01-01', null, 0, 1, 0, 1],
 ];
 
+const demoTaxes = [
+  ['GST 5%', 5],
+  ['GST 12%', 12],
+  ['GST 18%', 18],
+  ['Service charge', 2.5],
+];
+
+// [name, type, value, min_purchase, min_quantity, start, end, usage_limit, times_used, applies_to, product names]
+const demoDiscounts = [
+  ['Welcome 10%', 'percentage', 10, null, null, '2026-01-01', '2026-12-31', 100, 12, 'subscription', []],
+  ['Annual commitment', 'fixed', 500, 2000, null, '2026-01-01', null, null, 0, 'subscription', []],
+  ['Workspace bulk offer', 'percentage', 15, null, 5, '2026-01-01', '2026-12-31', 50, 3, 'products', ['Team Workspace Suite', 'Analytics Add-on']],
+  ['Summer sale', 'percentage', 20, null, null, '2026-04-01', '2026-06-30', null, 40, 'subscription', []],
+  ['Launch week', 'fixed', 250, null, null, '2026-02-01', '2026-12-31', 10, 10, 'subscription', []],
+  ['Festive offer', 'percentage', 12, 1000, null, '2026-11-15', '2026-12-31', 200, 0, 'products', ['Onboarding Kit', 'Priority Support']],
+];
+
+async function seedTaxesAndDiscounts() {
+  for (const [name, rate] of demoTaxes) {
+    const [existing] = await query('SELECT id FROM taxes WHERE name = ?', [name]);
+    if (existing) continue;
+    await query('INSERT INTO taxes (name, rate) VALUES (?, ?)', [name, rate]);
+    console.log(`Created  tax      ${name}`);
+  }
+  for (const [name, type, value, minPurchase, minQty, start, end, limit, used, appliesTo, products] of demoDiscounts) {
+    const [existing] = await query('SELECT id FROM discounts WHERE name = ?', [name]);
+    if (existing) continue;
+    const result = await query(
+      `INSERT INTO discounts (name, type, value, min_purchase, min_quantity, start_date, end_date,
+                              usage_limit, times_used, applies_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, type, value, minPurchase, minQty, start, end, limit, used, appliesTo]
+    );
+    for (const productName of products) {
+      const [product] = await query('SELECT id FROM products WHERE name = ?', [productName]);
+      if (product) await query('INSERT INTO discount_products (discount_id, product_id) VALUES (?, ?)', [result.insertId, product.id]);
+    }
+    console.log(`Created  discount ${name}`);
+  }
+}
+
 async function seedCatalog() {
   for (const p of demoProducts) {
     const [existing] = await query('SELECT id FROM products WHERE name = ?', [p.name]);
@@ -75,6 +115,7 @@ async function main() {
     console.log(`Created  ${user.role.padEnd(8)} ${user.email}  /  ${user.password}`);
   }
   await seedCatalog();
+  await seedTaxesAndDiscounts();
 }
 
 main()

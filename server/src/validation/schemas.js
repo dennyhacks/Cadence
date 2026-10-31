@@ -132,3 +132,56 @@ export const planSchema = z
       ctx.addIssue({ code: 'custom', path: ['end_date'], message: 'Set an end date for a plan that closes on its own.' });
     }
   });
+
+// ---- Taxes and discounts ----
+
+export const taxSchema = z.object({
+  name: text('a tax name', 120),
+  rate: z
+    .number({ error: 'Enter the rate as a number.' })
+    .min(0, 'The rate cannot be negative.')
+    .max(100, 'The rate cannot be more than 100.')
+    .refine((n) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6, 'Use at most 2 decimal places.'),
+});
+
+const optionalMoney = (label) => money(label).nullable().optional().default(null);
+
+export const discountSchema = z
+  .object({
+    name: text('a discount name', 160),
+    type: z.enum(['fixed', 'percentage'], { error: 'Choose a fixed amount or a percentage.' }),
+    value: money('the discount value'),
+    min_purchase: optionalMoney('the minimum purchase'),
+    min_quantity: z
+      .number({ error: 'Enter the minimum quantity as a whole number.' })
+      .int('Enter the minimum quantity as a whole number.')
+      .min(1, 'Minimum quantity must be at least 1.')
+      .max(100000, 'Minimum quantity is too large.')
+      .nullable()
+      .optional()
+      .default(null),
+    start_date: isoDate('a start date'),
+    end_date: isoDate('an end date').nullable().optional().default(null),
+    usage_limit: z
+      .number({ error: 'Enter the usage limit as a whole number.' })
+      .int('Enter the usage limit as a whole number.')
+      .min(1, 'The usage limit must be at least 1.')
+      .max(10_000_000, 'The usage limit is too large.')
+      .nullable()
+      .optional()
+      .default(null),
+    applies_to: z.enum(['products', 'subscription'], { error: 'Choose what the discount applies to.' }),
+    product_ids: z.array(z.number().int().positive()).max(500).optional().default([]),
+  })
+  .superRefine((d, ctx) => {
+    if (d.value <= 0) ctx.addIssue({ code: 'custom', path: ['value'], message: 'The discount must be more than 0.' });
+    if (d.type === 'percentage' && d.value > 100) {
+      ctx.addIssue({ code: 'custom', path: ['value'], message: 'A percentage cannot be more than 100.' });
+    }
+    if (d.end_date && d.end_date < d.start_date) {
+      ctx.addIssue({ code: 'custom', path: ['end_date'], message: 'The end date cannot be before the start date.' });
+    }
+    if (d.applies_to === 'products' && d.product_ids.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['product_ids'], message: 'Choose at least one product.' });
+    }
+  });

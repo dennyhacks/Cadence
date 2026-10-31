@@ -12,6 +12,8 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import productRoutes from './routes/products.js';
 import planRoutes from './routes/plans.js';
+import taxRoutes from './routes/taxes.js';
+import discountRoutes from './routes/discounts.js';
 
 export function createApp() {
   const app = express();
@@ -27,6 +29,8 @@ export function createApp() {
   app.use('/api/users', userRoutes);
   app.use('/api/products', productRoutes);
   app.use('/api/plans', planRoutes);
+  app.use('/api/taxes', taxRoutes);
+  app.use('/api/discounts', discountRoutes);
   app.use('/api', notFound);
 
   // After `npm run build`, the server can serve the built app on its own (one port, no Vite).
