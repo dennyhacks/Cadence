@@ -3,7 +3,9 @@ import { query, withTransaction } from '../db.js';
 import { HttpError } from '../utils/errors.js';
 import { today } from '../utils/pricing.js';
 import { computeInvoice, TERMS_DAYS } from '../utils/invoicing.js';
-import { sendInvoiceEmail } from '../utils/mailer.js';
+import { sendInvoiceEmail, sendReminderEmail } from '../utils/mailer.js';
+import { expiryInFuture, luhn, TEST_CARDS } from '../utils/cards.js';
+import { toCsv } from '../utils/csv.js';
 import { addDays, linesFor, periodStart } from './subscriptions.js';
 
 const day = (col) => `DATE_FORMAT(${col}, '%Y-%m-%d')`;
@@ -155,7 +157,8 @@ const INVOICE_COLUMNS = `i.id, i.number, i.subscription_id, i.customer_id, i.sta
   i.customer_company, i.customer_phone, i.customer_address, i.plan_name,
   ${day('i.period_start')} AS period_start, ${day('i.period_end')} AS period_end, ${day('i.invoice_date')} AS invoice_date,
   ${day('i.due_date')} AS due_date, i.untaxed_total, i.discount_total, i.tax_total, i.total, i.amount_paid,
-  DATE_FORMAT(i.sent_at, '%Y-%m-%dT%H:%i:%sZ') AS sent_at, s.number AS subscription_number`;
+  DATE_FORMAT(i.sent_at, '%Y-%m-%dT%H:%i:%sZ') AS sent_at, DATE_FORMAT(i.reminded_at, '%Y-%m-%dT%H:%i:%sZ') AS reminded_at,
+  s.number AS subscription_number`;
 
 const FROM = 'FROM invoices i JOIN subscriptions s ON s.id = i.subscription_id';
 
@@ -181,6 +184,7 @@ export function invoiceActions(inv, role) {
   if (inv.status === 'draft') out.push('confirm', 'cancel');
   if (inv.status === 'confirmed') {
     out.push('send');
+    if (inv.is_overdue) out.push('remind');
     if (inv.amount_paid === 0) out.push('cancel');
   }
   if (inv.status === 'paid') out.push('send');
@@ -213,6 +217,7 @@ export async function loadInvoice(id, user) {
     payments: payments.map((p) => num(p, ['amount'])),
     actions: invoiceActions(inv, user.role),
     can_record_payment: user.role !== 'customer' && inv.status === 'confirmed' && inv.outstanding > 0,
+    can_pay_online: inv.status === 'confirmed' && inv.outstanding > 0,
   };
 }
 
@@ -305,6 +310,14 @@ export async function runInvoiceAction(id, action, user) {
         [inv.id]
       );
     });
+  } else if (action === 'remind') {
+    try {
+      await sendReminderEmail(inv, `${config.clientUrl}/invoices/${inv.id}`);
+    } catch (err) {
+      console.error('Could not send reminder email:', err.message);
+      throw new HttpError(502, 'The reminder could not be sent. Check the mail settings and try again.');
+    }
+    await query('UPDATE invoices SET reminded_at = UTC_TIMESTAMP() WHERE id = ?', [inv.id]);
   } else if (action === 'send') {
     try {
       await sendInvoiceEmail(inv, `${config.clientUrl}/invoices/${inv.id}`);
@@ -343,4 +356,87 @@ export async function recordPayment(id, input, user) {
     await conn.execute('UPDATE invoices SET amount_paid = amount_paid + ?, status = ? WHERE id = ?', [input.amount, settled ? 'paid' : 'confirmed', inv.id]);
   });
   return loadInvoice(id, user);
+}
+
+// ---- Paying online (test mode) ----
+
+const cardError = (field, message) => new HttpError(400, 'Fix the highlighted fields and try again.', { [field]: message });
+
+/**
+ * A customer pays an invoice by card. This is a stand-in for a payment provider: only the published test
+ * cards work, nothing is charged, and the card number is never stored (only its last four digits, in the note).
+ */
+export async function payOnline(id, input, user) {
+  if (!luhn(input.card_number)) throw cardError('card_number', 'Enter a valid card number.');
+  const outcome = TEST_CARDS[input.card_number];
+  if (!outcome) throw cardError('card_number', 'This is test mode, so only test cards work. Use 4242 4242 4242 4242.');
+  if (!expiryInFuture(input.expiry)) throw cardError('expiry', 'This card has expired. Use a date in the future.');
+  if (outcome === 'declined') {
+    throw new HttpError(402, 'Your card was declined. That test card always fails. Try 4242 4242 4242 4242 instead.');
+  }
+
+  const inv = await loadInvoice(id, user);
+  const amount = input.amount ?? inv.outstanding;
+  return recordPayment(
+    id,
+    { method: 'card', amount, paid_on: today(), note: `Online payment (test mode), card ending ${input.card_number.slice(-4)}` },
+    user
+  );
+}
+
+// ---- CSV exports for the team ----
+
+const EXPORT_LIMIT = 50000;
+
+export async function exportInvoicesCsv({ status }) {
+  const todayStr = today();
+  const where = [];
+  const params = [];
+  if (status === 'overdue') {
+    where.push("i.status = 'confirmed' AND i.due_date < ?");
+    params.push(todayStr);
+  } else if (status) {
+    where.push('i.status = ?');
+    params.push(status);
+  }
+  const rows = await query(
+    `SELECT ${INVOICE_COLUMNS} ${FROM} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY i.invoice_date DESC, i.id DESC LIMIT ${EXPORT_LIMIT}`,
+    params
+  );
+  const invoices = rows.map((r) => shape(r, todayStr));
+  return toCsv(
+    [
+      { header: 'Invoice', value: (r) => r.number },
+      { header: 'Subscription', value: (r) => r.subscription_number },
+      { header: 'Customer', value: (r) => r.customer_name },
+      { header: 'Company', value: (r) => r.customer_company },
+      { header: 'Email', value: (r) => r.customer_email },
+      { header: 'Status', value: (r) => r.status },
+      { header: 'Overdue', value: (r) => (r.is_overdue ? 'yes' : 'no') },
+      { header: 'Invoice date', value: (r) => r.invoice_date },
+      { header: 'Due date', value: (r) => r.due_date },
+      { header: 'Total', value: (r) => r.total },
+      { header: 'Paid', value: (r) => r.amount_paid },
+      { header: 'Outstanding', value: (r) => (r.status === 'cancelled' ? 0 : r.outstanding) },
+    ],
+    invoices
+  );
+}
+
+export async function exportPaymentsCsv() {
+  const rows = await query(
+    `SELECT ${day('p.paid_on')} AS paid_on, i.number AS invoice_number, i.customer_name, p.method, p.amount, p.note
+       FROM payments p JOIN invoices i ON i.id = p.invoice_id ORDER BY p.paid_on DESC, p.id DESC LIMIT ${EXPORT_LIMIT}`
+  );
+  return toCsv(
+    [
+      { header: 'Date', value: (r) => r.paid_on },
+      { header: 'Invoice', value: (r) => r.invoice_number },
+      { header: 'Customer', value: (r) => r.customer_name },
+      { header: 'Method', value: (r) => r.method },
+      { header: 'Amount', value: (r) => Number(r.amount) },
+      { header: 'Note', value: (r) => r.note },
+    ],
+    rows
+  );
 }

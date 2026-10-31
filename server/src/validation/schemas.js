@@ -253,7 +253,7 @@ export const transitionSchema = z.object({
 export const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'upi', 'cheque'];
 
 export const invoiceActionSchema = z.object({
-  action: z.enum(['confirm', 'cancel', 'send'], { error: 'Choose a valid action.' }),
+  action: z.enum(['confirm', 'cancel', 'send', 'remind'], { error: 'Choose a valid action.' }),
 });
 
 export const paymentSchema = z.object({
@@ -290,4 +290,22 @@ export const profileSchema = z.object({
   company: optionalText('the company name', 160),
   phone: optionalText('the phone number', 30).refine((v) => v === '' || /^[+()\-.\s\d]{6,30}$/.test(v), 'Enter a valid phone number, for example +91 98765 43210.'),
   billing_address: optionalText('the billing address', 500),
+});
+
+// ---- Online payment (test mode) ----
+
+export const onlinePaymentSchema = z.object({
+  card_number: z
+    .string({ error: 'Enter the card number.' })
+    .trim()
+    .transform((v) => v.replace(/[\s-]/g, ''))
+    .refine((v) => /^\d{12,19}$/.test(v), 'Enter the card number using digits only.'),
+  expiry: z.string({ error: 'Enter the expiry as MM/YY.' }).trim().regex(/^(0[1-9]|1[0-2])\s*\/\s*\d{2}$/, 'Enter the expiry as MM/YY.'),
+  cvc: z.string({ error: 'Enter the 3 or 4 digit security code.' }).trim().regex(/^\d{3,4}$/, 'Enter the 3 or 4 digit security code.'),
+  name: z.string().trim().max(120, 'The name must be 120 characters or fewer.').optional().default(''),
+  amount: z
+    .number({ error: 'Enter the amount as a number.' })
+    .gt(0, 'The amount must be more than 0.')
+    .max(99_999_999.99, 'The amount is too large.')
+    .optional(),
 });
