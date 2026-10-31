@@ -58,3 +58,77 @@ export function parse(schema, data) {
   }
   throw new HttpError(400, 'Fix the highlighted fields and try again.', errors);
 }
+
+// ---- Catalog (products and plans) ----
+
+const money = (label) =>
+  z
+    .number({ error: `Enter ${label} as a number.` })
+    .min(0, `${label[0].toUpperCase()}${label.slice(1)} cannot be negative.`)
+    .max(9_999_999.99, `${label[0].toUpperCase()}${label.slice(1)} is too large.`)
+    .refine((n) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6, 'Use at most 2 decimal places.');
+
+const text = (label, max) =>
+  z
+    .string({ error: `Enter ${label}.` })
+    .trim()
+    .min(1, `Enter ${label}.`)
+    .max(max, `${label[0].toUpperCase()}${label.slice(1)} must be ${max} characters or fewer.`);
+
+const variant = z.object({
+  attribute: text('an attribute, for example Brand', 60),
+  value: text('a value, for example Odoo', 60),
+  extra_price: money('the extra price'),
+});
+
+export const productSchema = z
+  .object({
+    name: text('a product name', 160),
+    type: z.enum(['service', 'goods'], { error: 'Choose service or goods.' }),
+    sales_price: money('the sales price'),
+    cost_price: money('the cost price'),
+    notes: z.string().trim().max(2000, 'Notes must be 2000 characters or fewer.').optional().default(''),
+    variants: z.array(variant).max(50, 'A product can have up to 50 variants.').optional().default([]),
+  })
+  .superRefine((p, ctx) => {
+    const seen = new Set();
+    p.variants.forEach((v, i) => {
+      const key = `${v.attribute.toLowerCase()}|${v.value.toLowerCase()}`;
+      if (seen.has(key)) {
+        ctx.addIssue({ code: 'custom', path: ['variants'], message: `Variant ${i + 1} repeats ${v.attribute}: ${v.value}.` });
+      }
+      seen.add(key);
+    });
+  });
+
+const isoDate = (label) =>
+  z
+    .string({ error: `Choose ${label}.` })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, `Choose ${label}.`)
+    .refine((s) => !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().startsWith(s), `Choose ${label}.`);
+
+export const planSchema = z
+  .object({
+    name: text('a plan name', 160),
+    price: money('the price'),
+    billing_period: z.enum(['daily', 'weekly', 'monthly', 'yearly'], { error: 'Choose how often this plan bills.' }),
+    min_quantity: z
+      .number({ error: 'Enter the minimum quantity as a whole number.' })
+      .int('Enter the minimum quantity as a whole number.')
+      .min(1, 'Minimum quantity must be at least 1.')
+      .max(100000, 'Minimum quantity is too large.'),
+    start_date: isoDate('a start date'),
+    end_date: isoDate('an end date').nullable().optional().default(null),
+    auto_close: z.boolean().default(false),
+    closable: z.boolean().default(false),
+    pausable: z.boolean().default(false),
+    renewable: z.boolean().default(false),
+  })
+  .superRefine((p, ctx) => {
+    if (p.end_date && p.end_date < p.start_date) {
+      ctx.addIssue({ code: 'custom', path: ['end_date'], message: 'The end date cannot be before the start date.' });
+    }
+    if (p.auto_close && !p.end_date) {
+      ctx.addIssue({ code: 'custom', path: ['end_date'], message: 'Set an end date for a plan that closes on its own.' });
+    }
+  });
