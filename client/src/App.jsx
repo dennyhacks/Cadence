@@ -7,7 +7,6 @@ import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import Overview from './pages/Overview.jsx';
-import Section from './pages/Section.jsx';
 import Staff from './pages/Staff.jsx';
 import Products from './pages/Products.jsx';
 import ProductForm from './pages/ProductForm.jsx';
@@ -22,6 +21,9 @@ import TemplateForm from './pages/TemplateForm.jsx';
 import Subscriptions from './pages/Subscriptions.jsx';
 import SubscriptionDetail from './pages/SubscriptionDetail.jsx';
 import SubscriptionForm from './pages/SubscriptionForm.jsx';
+import Invoices from './pages/Invoices.jsx';
+import InvoiceDetail from './pages/InvoiceDetail.jsx';
+import Payments from './pages/Payments.jsx';
 
 const TEAM = ['admin', 'staff'];
 
@@ -48,17 +50,8 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
-          <Route
-            path="/invoices"
-            element={
-              <Section
-                title="Invoices"
-                customerTitle="My invoices"
-                intro="Confirm, send and print invoices."
-                customerIntro="Your invoices and what is still to pay."
-              />
-            }
-          />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/invoices/:id" element={<InvoiceDetail />} />
 
           <Route element={<ProtectedRoute roles={TEAM} />}>
             <Route path="/products" element={<Products />} />
@@ -72,7 +65,7 @@ export default function App() {
             <Route path="/templates/:id" element={<TemplateForm />} />
             <Route path="/subscriptions/new" element={<SubscriptionForm />} />
             <Route path="/subscriptions/:id/edit" element={<SubscriptionForm />} />
-            <Route path="/payments" element={<Section title="Payments" intro="Payments recorded against invoices." />} />
+            <Route path="/payments" element={<Payments />} />
           </Route>
 
           <Route element={<ProtectedRoute roles={['admin']} />}>

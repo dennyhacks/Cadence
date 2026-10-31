@@ -38,3 +38,21 @@ export function StatusSteps({ status }) {
     </ol>
   );
 }
+
+const INVOICE_LABEL = { draft: 'Draft', confirmed: 'Confirmed', paid: 'Paid', cancelled: 'Cancelled' };
+const INVOICE_TONE = {
+  draft: TONE.draft,
+  confirmed: TONE.confirmed,
+  paid: TONE.active,
+  cancelled: 'bg-paper text-muted ring-1 ring-line line-through',
+};
+
+/** Draft, Confirmed or Paid, plus an Overdue flag when a confirmed invoice is past its due date. */
+export function InvoiceBadge({ status, overdue }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${INVOICE_TONE[status]}`}>{INVOICE_LABEL[status]}</span>
+      {overdue && <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-xs font-medium text-danger">Overdue</span>}
+    </span>
+  );
+}

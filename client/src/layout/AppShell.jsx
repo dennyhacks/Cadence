@@ -39,7 +39,7 @@ export default function AppShell() {
   }, [open]);
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="min-h-screen lg:grid lg:grid-cols-[16rem_1fr] print:block">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2"
@@ -48,14 +48,14 @@ export default function AppShell() {
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="hidden bg-pine-900 py-5 lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
+      <aside className="hidden bg-pine-900 py-5 lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto print:hidden">
         <Logo light className="mb-6 px-6" />
         <Sidebar items={items} />
       </aside>
 
       {/* Mobile drawer */}
       {open && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden print:hidden">
           <button
             type="button"
             aria-label="Close menu"
@@ -83,7 +83,7 @@ export default function AppShell() {
       )}
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-3 backdrop-blur sm:px-6 print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -116,7 +116,7 @@ export default function AppShell() {
             </button>
           </div>
         </header>
-        <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
+        <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 print:max-w-none print:p-0">
           <Outlet />
         </main>
       </div>

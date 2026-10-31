@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { ErrorAlert } from '../components/ui.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import DeleteButton from '../components/DeleteButton.jsx';
-import StatusBadge, { StatusSteps } from '../components/StatusBadge.jsx';
+import StatusBadge, { InvoiceBadge, StatusSteps } from '../components/StatusBadge.jsx';
 import { formatDay, formatMoney } from '../format.js';
 import { useTitle } from '../useTitle.js';
 
@@ -36,10 +36,12 @@ export default function SubscriptionDetail() {
   const [sub, setSub] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [invoices, setInvoices] = useState([]);
   useTitle(sub ? sub.number : 'Subscription');
 
   useEffect(() => {
     api.get(`/subscriptions/${id}`).then((d) => setSub(d.subscription)).catch((e) => setError(e.message));
+    api.get(`/invoices?subscription_id=${id}&pageSize=100`).then((d) => setInvoices(d.invoices)).catch(() => setInvoices([]));
   }, [id]);
 
   async function run(action) {
@@ -145,6 +147,38 @@ export default function SubscriptionDetail() {
         <div className="flex justify-between"><dt className="text-muted">{sub.plan_name} plan price</dt><dd>{formatMoney(sub.totals.plan_price)}</dd></div>
         <div className="flex justify-between border-t border-line pt-2 text-base font-semibold"><dt>Total</dt><dd>{formatMoney(sub.totals.total)}</dd></div>
       </dl>
+
+      {invoices.length > 0 && (
+        <section className="mt-8" aria-labelledby="sub-invoices">
+          <h2 id="sub-invoices" className="mb-3 font-display text-lg font-semibold">Invoices</h2>
+          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-line text-muted">
+                <tr>
+                  <th scope="col" className="px-4 py-2.5 font-medium">Invoice</th>
+                  <th scope="col" className="px-4 py-2.5 font-medium">Period</th>
+                  <th scope="col" className="px-4 py-2.5 font-medium">Status</th>
+                  <th scope="col" className="px-4 py-2.5 text-right font-medium">Total</th>
+                  <th scope="col" className="px-4 py-2.5 text-right font-medium">Outstanding</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map((i) => (
+                  <tr key={i.id} className="border-b border-line last:border-0">
+                    <td className="whitespace-nowrap px-4 py-3 font-medium">
+                      <Link to={`/invoices/${i.id}`} className="text-leaf-700 underline-offset-2 hover:underline">{i.number}</Link>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">{formatDay(i.period_start)} to {formatDay(i.period_end)}</td>
+                    <td className="px-4 py-3"><InvoiceBadge status={i.status} overdue={i.is_overdue} /></td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right">{formatMoney(i.total)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right">{i.status === 'cancelled' ? '–' : formatMoney(i.outstanding)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </>
   );
 }
