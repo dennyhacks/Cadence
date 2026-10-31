@@ -2,7 +2,7 @@
 
 **Subscription billing that runs itself.** Cadence is a complete subscription management system for Brightloop Software: products and plans, quotations, subscriptions, automatic invoices, payments and a live finance dashboard, with a customer portal on top. Built solo for the Odoo hackathon.
 
-### 🔗 Live demo: https://cadence-odoo.vercel.app
+### Live demo: https://cadence-odoo.vercel.app
 
 Open it, sign in with any account below, and click around. Everything you see comes from a real MySQL database.
 
@@ -45,15 +45,15 @@ Two more demo customers, `kite@cadence.test` and `orbit@cadence.test`, use `Cust
 | **Finance dashboard** | Active subscriptions, invoiced, collected, outstanding, overdue, charts, filters by period and plan, and a table view |
 | **Quality** | Real database data, responsive down to phone width, one colour scheme, a clear message on every form field, role-based menus |
 
-## And a few things beyond it
+## Beyond the brief
 
-- 💳 **Customers can pay online.** **Pay now** on any confirmed invoice, in test mode with the published test cards. Card numbers are never stored.
-- 🔔 **Overdue reminders.** One click for the team, and the billing job also sends one automatically, at most once a week per invoice.
-- 📈 **Recurring revenue.** Monthly recurring revenue, yearly run rate, churn and a three-month forecast on the dashboard.
-- 🔎 **Search.** One box finds subscriptions, invoices, products and plans.
-- 📤 **CSV export** of invoices and payments, safe to open in a spreadsheet.
-- ✨ **An interactive landing page** with a guided product tour and a small pixel-art night street.
-- 🌐 **Live online**, with working password-reset email.
+- **Online payment.** `POST /api/invoices/:id/pay` accepts a card on a confirmed invoice in test mode. The card number is checked with the Luhn algorithm and the expiry against today's date, only the published test cards are approved, and the number is never stored (only the last four digits go in the payment note). The payment is recorded inside the same row-locked transaction as a manual one.
+- **Overdue reminders.** A team action sends a reminder email with a link to the invoice. The billing job also sends them automatically, at most once every 7 days per invoice. Each invoice is claimed with a conditional `UPDATE` on `reminded_at` before sending, so concurrent runs cannot send twice, and the claim is rolled back if the send fails.
+- **Recurring revenue.** Monthly recurring revenue is computed in SQL from active, unpaused subscriptions (plan price plus product lines, before tax) and normalised per billing period. It is shown with the yearly run rate, churn for the selected period, and a three-month forecast that assumes no change from today.
+- **Search.** `GET /api/search` (team only) matches subscriptions, invoices, products and plans with parameterised, wildcard-escaped `LIKE` queries, up to five results per type.
+- **CSV export.** Invoices (following the status filter) and payments export with formula-injection protection, so a cell starting with `=`, `+`, `-` or `@` cannot run in a spreadsheet.
+- **Landing page.** A public front page with an interactive product tour and an SVG pixel-art street. It uses no data, runs only with a fine pointer, and respects `prefers-reduced-motion`.
+- **Production deployment.** Vercel serverless functions (Tokyo region) with a hosted TiDB Cloud MySQL database, SMTP mail through nodemailer, and a daily cron job for billing and reminders.
 
 ## Take the 3 minute tour
 
