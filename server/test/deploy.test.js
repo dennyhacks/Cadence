@@ -78,3 +78,24 @@ describe('database settings for a hosted database', () => {
     assert.equal(read({ VERCEL: '1', DB_POOL: '5' }).pool, 5);
   });
 });
+
+describe('work after the reply', () => {
+  test('a failing background job is logged, never thrown, and the work still finishes', async () => {
+    const { afterReply } = await import('../src/utils/background.js');
+    let finished = false;
+    await afterReply(
+      new Promise((resolve) => setTimeout(() => { finished = true; resolve(); }, 20)),
+      'Test job'
+    );
+    assert.equal(finished, true);
+    const original = console.error;
+    const logged = [];
+    console.error = (...args) => logged.push(args.join(' '));
+    try {
+      await afterReply(Promise.reject(new Error('boom')), 'Test job');
+    } finally {
+      console.error = original;
+    }
+    assert.match(logged[0], /Test job failed: boom/);
+  });
+});
