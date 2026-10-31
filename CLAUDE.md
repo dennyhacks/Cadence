@@ -71,7 +71,7 @@ To check the UI, install `puppeteer-core` and `@sparticuz/chromium` outside the 
 
 ## Status and plan
 
-Branches on GitHub: `setup/init` (README only), `feature/login`, `feature/dashboard` and `feature/products-plans`. Nothing is on `main` yet.
+Branches on GitHub: `setup/init` (README only), `feature/login`, `feature/dashboard`, `feature/products-plans` and `feature/taxes-discounts`. Nothing is on `main` yet.
 
 - [x] **Phase 1, login (`feature/login`):** sign in, sign up, forgot and reset password (emailed link, printed to the console without SMTP), roles, admin-only staff creation API (`POST /api/users/staff`, `GET /api/users`), placeholder landing page at `/`.
 - [x] **Phase 2, dashboard shell (`feature/dashboard`):** sidebar and top bar with a different menu per role (`client/src/layout/nav.js`), admin Staff screen (list and add, `GET /api/users?role=staff`), customer portal frame (Subscriptions and Invoices only). Later-phase screens are `Section` placeholders; replace them with real pages in their phase and keep the same routes.
@@ -79,7 +79,7 @@ Branches on GitHub: `setup/init` (README only), `feature/login`, `feature/dashbo
   - Product: name, type, sales price, cost price, notes, and variants (for example by brand: choosing the Odoo brand adds 560 to the price).
   - Plan: price, billing period (daily, weekly, monthly or yearly), minimum quantity, and the dates it is available.
   - The admin decides plan by plan whether it closes on its own at the end date, can be closed early, paused or renewed.
-- [ ] **Phase 4, taxes and discounts:**
+- [x] **Phase 4, taxes and discounts (`feature/taxes-discounts`, branched from `feature/products-plans`):** `/api/taxes` (staff read, admin write) and `/api/discounts` (admin only), screens `/taxes` and `/discounts`, seeded rules. `server/src/utils/pricing.js` holds `discountStatus`, `discountApplies`, `discountAmount` and `priceLine` (whole-cent maths, tax on the amount after discount); use them for subscription lines and invoices in Phases 5 and 6, and increment `discounts.times_used` when an invoice uses one. Brief details:
   - Tax rules set by the admin, calculated automatically.
   - Discounts: admin only. A fixed amount or a percentage, with a minimum purchase or quantity, start and end dates, and a limit on how many times it can be used. Applies to specific products or whole subscriptions, appears on the next invoice on its own, and stops when it expires or runs out.
 - [ ] **Phase 5, quotation templates and subscriptions:**

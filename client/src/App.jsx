@@ -13,6 +13,10 @@ import Products from './pages/Products.jsx';
 import ProductForm from './pages/ProductForm.jsx';
 import Plans from './pages/Plans.jsx';
 import PlanForm from './pages/PlanForm.jsx';
+import Taxes from './pages/Taxes.jsx';
+import TaxForm from './pages/TaxForm.jsx';
+import Discounts from './pages/Discounts.jsx';
+import DiscountForm from './pages/DiscountForm.jsx';
 
 const TEAM = ['admin', 'staff'];
 
@@ -72,8 +76,12 @@ export default function App() {
           </Route>
 
           <Route element={<ProtectedRoute roles={['admin']} />}>
-            <Route path="/taxes" element={<Section title="Taxes" intro="Tax rules that are applied automatically." />} />
-            <Route path="/discounts" element={<Section title="Discounts" intro="Fixed and percentage discounts with limits." />} />
+            <Route path="/taxes" element={<Taxes />} />
+            <Route path="/taxes/new" element={<TaxForm />} />
+            <Route path="/taxes/:id" element={<TaxForm />} />
+            <Route path="/discounts" element={<Discounts />} />
+            <Route path="/discounts/new" element={<DiscountForm />} />
+            <Route path="/discounts/:id" element={<DiscountForm />} />
             <Route path="/staff" element={<Staff />} />
           </Route>
         </Route>
