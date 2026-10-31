@@ -62,7 +62,7 @@ async function main() {
     'INSERT INTO subscriptions (customer_id, plan_id, plan_price, status, is_paused, start_date, expiry_date, payment_terms) VALUES ?',
     subs
   );
-  await query("UPDATE subscriptions SET number = CONCAT('SUB-', LPAD(id, 5, '0')) WHERE number IS NULL");
+  await query("UPDATE subscriptions SET number = CONCAT('SUB-', IF(id < 100000, LPAD(id, 5, '0'), CAST(id AS CHAR))) WHERE number IS NULL");
   const created = await query(
     `SELECT s.id, s.customer_id, s.status, s.plan_price, s.payment_terms, p.billing_period, DATE_FORMAT(s.start_date, '%Y-%m-%d') AS start_date,
             DATE_FORMAT(s.expiry_date, '%Y-%m-%d') AS expiry_date, u.name, u.email, p.name AS plan_name
@@ -117,7 +117,7 @@ async function main() {
     invoices
   );
   const volume = "customer_id IN (SELECT id FROM users WHERE email LIKE 'vol.%@cadence.test')";
-  await query(`UPDATE invoices SET number = CONCAT('INV-', LPAD(id, 5, '0')) WHERE number IS NULL AND ${volume}`);
+  await query(`UPDATE invoices SET number = CONCAT('INV-', IF(id < 100000, LPAD(id, 5, '0'), CAST(id AS CHAR))) WHERE number IS NULL AND ${volume}`);
   // Tell the billing job these periods are already invoiced, so it does not try them again.
   await query(
     `UPDATE subscriptions s JOIN (SELECT subscription_id, COUNT(*) AS c FROM invoices WHERE ${volume} GROUP BY subscription_id) x

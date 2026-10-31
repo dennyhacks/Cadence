@@ -138,7 +138,7 @@ async function seedSubscriptions() {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [customer.id, plan.id, plan.price, status, paused, start, expiry, terms, quoteUntil]
     );
-    await query("UPDATE subscriptions SET number = CONCAT('SUB-', LPAD(id, 5, '0')) WHERE id = ?", [result.insertId]);
+    await query("UPDATE subscriptions SET number = CONCAT('SUB-', IF(id < 100000, LPAD(id, 5, '0'), CAST(id AS CHAR))) WHERE id = ?", [result.insertId]);
     for (const [product, variant, qty, taxes] of lines) {
       const productId = await idOf('products', product);
       const [attribute, value] = split(variant);

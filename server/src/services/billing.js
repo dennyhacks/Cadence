@@ -6,6 +6,7 @@ import { computeInvoice, TERMS_DAYS } from '../utils/invoicing.js';
 import { sendInvoiceEmail, sendReminderEmail } from '../utils/mailer.js';
 import { expiryInFuture, luhn, TEST_CARDS } from '../utils/cards.js';
 import { toCsv } from '../utils/csv.js';
+import { paddedId } from '../utils/numbers.js';
 import { addDays, linesFor, periodStart } from './subscriptions.js';
 
 const day = (col) => `DATE_FORMAT(${col}, '%Y-%m-%d')`;
@@ -78,7 +79,7 @@ async function createInvoice(sub, k) {
         result.totals.untaxed, result.totals.discount, result.totals.tax, result.totals.total]
     );
     const id = ins.insertId;
-    await conn.execute("UPDATE invoices SET number = CONCAT('INV-', LPAD(id, 5, '0')) WHERE id = ?", [id]);
+    await conn.execute(`UPDATE invoices SET number = CONCAT('INV-', ${paddedId}) WHERE id = ?`, [id]);
 
     const addLine = (l) =>
       conn.execute(
