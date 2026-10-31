@@ -6,7 +6,3 @@ dist/
 .DS_Store
 .vite/
 coverage/
-
-# Local tool settings
-.claude/
-CLAUDE.md
