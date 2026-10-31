@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { config } from '../src/config.js';
 import { pool, query, explainDbError } from '../src/db.js';
+import { generateDueInvoices, recordPayment, runInvoiceAction } from '../src/services/billing.js';
 
 // Demo accounts for testing. Every password meets the signup rules.
 const demoUsers = [
@@ -140,6 +141,41 @@ async function seedSubscriptions() {
   }
 }
 
+// Bills the demo subscriptions from their start dates, then gives the invoices a realistic history:
+// older ones paid, one part paid, the latest still a draft, and one customer who has not paid at all.
+async function seedBilling() {
+  const [{ n }] = await query('SELECT COUNT(*) AS n FROM invoices');
+  if (n > 0) return;
+
+  const [admin] = await query("SELECT id, role FROM users WHERE role = 'admin' ORDER BY id LIMIT 1");
+  const { created } = await generateDueInvoices();
+  console.log(`Created  ${created} invoices`);
+
+  const invoices = await query(
+    `SELECT i.id, i.total, DATE_FORMAT(i.invoice_date, '%Y-%m-%d') AS invoice_date, u.email
+       FROM invoices i JOIN users u ON u.id = i.customer_id ORDER BY i.invoice_date, i.id`
+  );
+  const plusDays = (d, n) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
+
+  for (const inv of invoices) {
+    if (inv.invoice_date >= '2026-10-01') continue; // the newest period stays a draft
+    await runInvoiceAction(inv.id, 'confirm', admin);
+    await query('UPDATE invoices SET sent_at = UTC_TIMESTAMP() WHERE id = ?', [inv.id]);
+    if (inv.email === 'orbit@cadence.test') continue; // never paid, so it is overdue
+    const partial = inv.invoice_date >= '2026-09-01';
+    await recordPayment(
+      inv.id,
+      {
+        method: partial ? 'bank_transfer' : ['card', 'upi', 'bank_transfer'][Number(inv.id) % 3],
+        amount: partial ? Math.floor(Number(inv.total) / 2) : Number(inv.total),
+        paid_on: plusDays(inv.invoice_date, 3),
+        note: partial ? 'First half received' : '',
+      },
+      admin
+    );
+  }
+}
+
 async function seedCatalog() {
   for (const p of demoProducts) {
     const [existing] = await query('SELECT id FROM products WHERE name = ?', [p.name]);
@@ -185,6 +221,7 @@ async function main() {
   await seedCatalog();
   await seedTaxesAndDiscounts();
   await seedSubscriptions();
+  await seedBilling();
 }
 
 main()

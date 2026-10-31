@@ -245,3 +245,22 @@ export const subscriptionSchema = z
 export const transitionSchema = z.object({
   action: z.enum(['send', 'confirm', 'activate', 'close', 'pause', 'resume', 'renew'], { error: 'Choose a valid action.' }),
 });
+
+// ---- Invoices and payments ----
+
+export const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'upi', 'cheque'];
+
+export const invoiceActionSchema = z.object({
+  action: z.enum(['confirm', 'cancel', 'send'], { error: 'Choose a valid action.' }),
+});
+
+export const paymentSchema = z.object({
+  method: z.enum(PAYMENT_METHODS, { error: 'Choose how the payment was made.' }),
+  amount: z
+    .number({ error: 'Enter the amount as a number.' })
+    .gt(0, 'The amount must be more than 0.')
+    .max(99_999_999.99, 'The amount is too large.')
+    .refine((n) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6, 'Use at most 2 decimal places.'),
+  paid_on: isoDate('the payment date'),
+  note: z.string().trim().max(500, 'The note must be 500 characters or fewer.').optional().default(''),
+});

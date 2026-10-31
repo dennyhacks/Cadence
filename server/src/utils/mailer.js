@@ -47,3 +47,33 @@ export async function sendResetEmail(user, link) {
   }
   await smtp.sendMail({ from: config.smtp.from, to: user.email, subject, text, html });
 }
+
+/** Emails an invoice to its customer. Without SMTP it is printed to the console and kept in the outbox. */
+export async function sendInvoiceEmail(invoice, link) {
+  const subject = `Invoice ${invoice.number} from Brightloop Software`;
+  const text = [
+    `Hi ${invoice.customer_name},`,
+    '',
+    `Invoice ${invoice.number} for ${invoice.total.toFixed(2)} is ready. It is due on ${invoice.due_date}.`,
+    `You can view and print it here: ${link}`,
+    '',
+    'Thank you,',
+    'Brightloop Software',
+  ].join('\n');
+  const html = `
+    <div style="font-family:system-ui,sans-serif;max-width:480px;color:#14201e">
+      <p>Hi ${escapeHtml(invoice.customer_name)},</p>
+      <p>Invoice <strong>${escapeHtml(invoice.number)}</strong> for <strong>${invoice.total.toFixed(2)}</strong> is ready. It is due on ${escapeHtml(invoice.due_date)}.</p>
+      <p><a href="${escapeHtml(link)}" style="display:inline-block;background:#0e7c6b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">View invoice</a></p>
+      <p style="color:#55655f;font-size:14px">Thank you, Brightloop Software</p>
+    </div>`;
+
+  const smtp = getTransport();
+  if (!smtp) {
+    outbox.push({ to: invoice.customer_email, link, invoice: invoice.number, at: new Date() });
+    if (outbox.length > 50) outbox.shift();
+    console.log(`\n[mail] Invoice ${invoice.number} for ${invoice.customer_email}\n       ${link}\n`);
+    return;
+  }
+  await smtp.sendMail({ from: config.smtp.from, to: invoice.customer_email, subject, text, html });
+}

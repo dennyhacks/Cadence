@@ -18,16 +18,38 @@ export function addDays(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Adds one billing period. A month or year that is too short clamps to its last day (31 Jan + 1 month = 28 Feb). */
-export function addPeriod(dateStr, period) {
-  if (period === 'daily') return addDays(dateStr, 1);
-  if (period === 'weekly') return addDays(dateStr, 7);
+/** Adds whole months, clamping a short month to its last day (31 Jan + 1 month = 28 Feb). */
+export function addMonths(dateStr, months) {
   const d = new Date(`${dateStr}T00:00:00Z`);
-  const target = d.getUTCMonth() + (period === 'monthly' ? 1 : 12);
-  const result = new Date(Date.UTC(d.getUTCFullYear(), target, 1));
+  const result = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + months, 1));
   const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
   result.setUTCDate(Math.min(d.getUTCDate(), lastDay));
   return result.toISOString().slice(0, 10);
+}
+
+/** Adds one billing period. */
+export function addPeriod(dateStr, period) {
+  return periodStart(dateStr, period, 1);
+}
+
+/**
+ * When billing period `k` starts, counting from the subscription's start date. Always measured from the
+ * start date, not from the previous period, so a 31st never drifts to the 28th for good.
+ */
+export function periodStart(start, period, k) {
+  if (period === 'daily') return addDays(start, k);
+  if (period === 'weekly') return addDays(start, 7 * k);
+  return addMonths(start, period === 'monthly' ? k : 12 * k);
+}
+
+/** The first billing period whose start is on or after `day`. */
+export function firstPeriodOnOrAfter(start, period, day) {
+  if (start >= day) return 0;
+  const gap = (Date.parse(`${day}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000;
+  const longest = { daily: 1, weekly: 7, monthly: 31, yearly: 366 }[period];
+  let k = Math.max(0, Math.floor(gap / longest) - 1);
+  while (periodStart(start, period, k) < day) k += 1;
+  return k;
 }
 
 // ---- Plans and lines ----
@@ -139,7 +161,7 @@ function totalsOf(lines, planPrice) {
   };
 }
 
-async function linesFor(ids) {
+export async function linesFor(ids) {
   if (!ids.length) return new Map();
   const rows = await query(
     `SELECT l.id, l.subscription_id, l.product_id, pr.name AS product_name, l.variant_label, l.quantity, l.unit_price
@@ -236,7 +258,11 @@ export async function runAction(id, action, user) {
       await query("UPDATE subscriptions SET status = 'confirmed' WHERE id = ?", [sub.id]);
       break;
     case 'activate':
-      await query("UPDATE subscriptions SET status = 'active' WHERE id = ?", [sub.id]);
+      // Billing starts when the subscription becomes active; earlier periods are not billed after the fact.
+      await query("UPDATE subscriptions SET status = 'active', next_period_index = ? WHERE id = ?", [
+        firstPeriodOnOrAfter(sub.start_date, sub.billing_period, now),
+        sub.id,
+      ]);
       break;
     case 'close':
       await query("UPDATE subscriptions SET status = 'closed', is_paused = 0 WHERE id = ?", [sub.id]);
@@ -245,7 +271,11 @@ export async function runAction(id, action, user) {
       await query('UPDATE subscriptions SET is_paused = 1 WHERE id = ?', [sub.id]);
       break;
     case 'resume':
-      await query('UPDATE subscriptions SET is_paused = 0 WHERE id = ?', [sub.id]);
+      // Periods that passed while paused are not billed.
+      await query('UPDATE subscriptions SET is_paused = 0, next_period_index = GREATEST(next_period_index, ?) WHERE id = ?', [
+        firstPeriodOnOrAfter(sub.start_date, sub.billing_period, now),
+        sub.id,
+      ]);
       break;
     case 'renew': {
       const [plan] = await query(`SELECT ${day('end_date')} AS end_date FROM plans WHERE id = ?`, [sub.plan_id]);
@@ -254,7 +284,10 @@ export async function runAction(id, action, user) {
       if (plan.end_date && next > plan.end_date) {
         throw new HttpError(409, `The plan ends on ${plan.end_date}, so this cannot be renewed past it.`);
       }
-      await query("UPDATE subscriptions SET status = 'active', is_paused = 0, expiry_date = ? WHERE id = ?", [next, sub.id]);
+      await query(
+        "UPDATE subscriptions SET status = 'active', is_paused = 0, expiry_date = ?, next_period_index = GREATEST(next_period_index, ?) WHERE id = ?",
+        [next, firstPeriodOnOrAfter(sub.start_date, sub.billing_period, now), sub.id]
+      );
       break;
     }
   }
