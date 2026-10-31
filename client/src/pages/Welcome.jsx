@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
 import CycleDial from '../components/CycleDial.jsx';
 import Icon from '../components/Icon.jsx';
+import PixelCity from '../components/PixelCity.jsx';
 import { CountUp, CursorRing, ModuleTour, Tilt, useReveal, useSpotlight } from '../components/landing.jsx';
 
 // The public front page: what Cadence is, what it does, and a way in. Everything here is explanation and
@@ -287,6 +288,8 @@ export default function Welcome() {
             </div>
           </div>
         </section>
+
+        <PixelCity />
       </main>
 
       <footer className="border-t border-line">
