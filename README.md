@@ -77,6 +77,12 @@ Customers sign up on their own and can keep their company, phone and billing add
 - The database allows one invoice per subscription and billing period, so even simultaneous runs cannot bill twice.
 - Billing starts when a subscription becomes active, skips periods while it is paused, and stops at its expiry date.
 
+**Paying online.** A customer opens a confirmed invoice (or presses **Pay now** in their list) and pays by card. This runs in **test mode**: only the published test cards work (4242 4242 4242 4242 approves, 4000 0000 0000 0002 is declined), no money moves, and the card number is never stored, only its last four digits in the payment note.
+
+**Reminders.** On an overdue invoice the team can press **Send reminder**, which emails the customer a link to view and pay it and records when the last reminder went out.
+
+**Exports.** The invoice and payment lists each have an **Export CSV** button for the team. The invoice export follows the status filter, and text that could run as a spreadsheet formula is made safe.
+
 **Payments.** Record a payment against a confirmed invoice with method, amount, date and a note. It can never exceed what is owed, and two payments recorded together cannot overpay. The invoice list shows paid, outstanding and overdue.
 
 **Finance dashboard.** Active subscriptions, invoiced, collected, outstanding and overdue, a chart of invoiced versus collected by month (with a table view), subscriptions by status, a by-plan summary, the longest overdue invoices and the latest payments. Filter by period and plan.
@@ -118,4 +124,4 @@ docs/            the hackathon brief
 
 ## Design notes
 
-One colour scheme (pine and leaf green, with amber used sparingly), Bricolage Grotesque for headings and Instrument Sans for text, both bundled so the app works offline. Pages work from 390 px wide up, every input has a label, keyboard focus is visible, and motion respects the reduced-motion setting. The invoice page has a print layout.
+A dark interface with one lime accent: near-black surfaces, soft borders, pill-shaped buttons and tags, and big clean headings in Outfit, with Instrument Sans for tables and forms (both bundled, so the app works offline). The invoice page prints as dark text on white. Pages work from 390 px wide up, every input has a label, keyboard focus is visible, and motion respects the reduced-motion setting. The chart colours were checked for colour-blind separation and contrast on the dark surface.

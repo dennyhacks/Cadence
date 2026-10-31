@@ -33,7 +33,7 @@ export default function Plans() {
       {!error && plans === null && <p className="text-muted">Loading plans…</p>}
       {plans?.length === 0 && <p className="text-muted">No plans yet. Add the first one.</p>}
       {plans?.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr>

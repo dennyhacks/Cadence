@@ -111,7 +111,7 @@ export default function DiscountForm() {
           <Field id="value" label={percentage ? 'Percentage off (%)' : 'Amount off'} type="number" inputMode="decimal" min="0" step="0.01" value={values.value} onChange={set('value')} error={errors.value} />
         </div>
 
-        <fieldset className="rounded-xl border border-line bg-white p-4">
+        <fieldset className="rounded-2xl border border-line bg-surface p-4">
           <legend className="px-1 font-display text-lg font-semibold">When it applies</legend>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field id="min_purchase" label="Minimum purchase" type="number" inputMode="decimal" min="0" step="0.01" value={values.min_purchase} onChange={set('min_purchase')} error={errors.min_purchase} hint="Leave empty for no minimum." />
@@ -124,7 +124,7 @@ export default function DiscountForm() {
           </div>
         </fieldset>
 
-        <fieldset className="rounded-xl border border-line bg-white p-4">
+        <fieldset className="rounded-2xl border border-line bg-surface p-4">
           <legend className="px-1 font-display text-lg font-semibold">What it applies to</legend>
           <Select id="applies_to" label="Applies to" value={values.applies_to} onChange={set('applies_to')} error={errors.applies_to}>
             <option value="subscription">Whole subscriptions</option>
@@ -145,7 +145,7 @@ export default function DiscountForm() {
           <Button type="submit" loading={saving} loadingText="Saving…" className="w-auto!">
             {editing ? 'Save changes' : 'Add discount'}
           </Button>
-          <Link to="/discounts" className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Cancel</Link>
+          <Link to="/discounts" className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Cancel</Link>
           {editing && <DeleteButton label="Delete discount" busy={saving} onConfirm={onDelete} />}
         </div>
       </form>

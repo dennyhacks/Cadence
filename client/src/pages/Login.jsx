@@ -109,7 +109,7 @@ export default function Login() {
                   setErrors({});
                   setFormError('');
                 }}
-                className="rounded-full border border-line bg-white px-3.5 py-1 text-sm font-medium hover:border-leaf-600 hover:text-leaf-700"
+                className="rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-medium hover:border-leaf-600 hover:text-leaf-700"
               >
                 {account.label}
               </button>

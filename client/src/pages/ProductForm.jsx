@@ -96,7 +96,7 @@ export default function ProductForm() {
         </div>
         <Textarea id="notes" label="Notes" value={values.notes} onChange={set('notes')} error={errors.notes} />
 
-        <fieldset className="rounded-xl border border-line bg-white p-4">
+        <fieldset className="rounded-2xl border border-line bg-surface p-4">
           <legend className="px-1 font-display text-lg font-semibold">Variants</legend>
           <p className="mb-3 text-sm text-muted">
             A variant adds an amount to the sales price. For example, Brand: Odoo adds 560.
@@ -106,7 +106,7 @@ export default function ProductForm() {
               <Field id={`variant-attribute-${i}`} label="Attribute" value={v.attribute} onChange={setVariant(i, 'attribute')} />
               <Field id={`variant-value-${i}`} label="Value" value={v.value} onChange={setVariant(i, 'value')} />
               <Field id={`variant-extra-${i}`} label="Extra price" type="number" inputMode="decimal" min="0" step="0.01" value={v.extra_price} onChange={setVariant(i, 'extra_price')} />
-              <button type="button" onClick={() => removeVariant(i)} className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium hover:bg-paper">
+              <button type="button" onClick={() => removeVariant(i)} className="rounded-full border border-line px-3 py-2.5 text-sm font-medium hover:bg-white/10">
                 Remove<span className="sr-only"> variant {i + 1}</span>
               </button>
               {v.attribute && v.value && Number(v.extra_price) >= 0 && values.sales_price !== '' && (
@@ -117,7 +117,7 @@ export default function ProductForm() {
             </div>
           ))}
           {errors.variants && <p className="mb-3 text-sm text-danger">{errors.variants}</p>}
-          <button type="button" onClick={addVariant} className="rounded-lg border border-line px-4 py-2 font-medium hover:bg-paper">
+          <button type="button" onClick={addVariant} className="rounded-full border border-line px-4 py-2 font-medium hover:bg-white/10">
             Add variant
           </button>
         </fieldset>
@@ -126,7 +126,7 @@ export default function ProductForm() {
           <Button type="submit" loading={saving} loadingText="Saving…" className="w-auto!">
             {editing ? 'Save changes' : 'Add product'}
           </Button>
-          <Link to="/products" className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Cancel</Link>
+          <Link to="/products" className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Cancel</Link>
           {editing && <DeleteButton label="Delete product" busy={saving} onConfirm={onDelete} />}
         </div>
       </form>

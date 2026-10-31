@@ -95,7 +95,7 @@ export default function PlanForm() {
           <Field id="end_date" label="Available until" type="date" value={values.end_date} onChange={set('end_date')} error={errors.end_date} hint="Leave empty if the plan has no end date." />
         </div>
 
-        <fieldset className="space-y-3 rounded-xl border border-line bg-white p-4">
+        <fieldset className="space-y-3 rounded-2xl border border-line bg-surface p-4">
           <legend className="px-1 font-display text-lg font-semibold">What can happen to its subscriptions</legend>
           <Checkbox id="auto_close" label="Close on its own" hint="Subscriptions close automatically at the end date." checked={values.auto_close} onChange={set('auto_close')} />
           <Checkbox id="closable" label="Can be closed early" checked={values.closable} onChange={set('closable')} />
@@ -107,7 +107,7 @@ export default function PlanForm() {
           <Button type="submit" loading={saving} loadingText="Saving…" className="w-auto!">
             {editing ? 'Save changes' : 'Add plan'}
           </Button>
-          <Link to="/plans" className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Cancel</Link>
+          <Link to="/plans" className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Cancel</Link>
           {editing && <DeleteButton label="Delete plan" busy={saving} onConfirm={onDelete} />}
         </div>
       </form>

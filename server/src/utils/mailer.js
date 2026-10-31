@@ -77,3 +77,33 @@ export async function sendInvoiceEmail(invoice, link) {
   }
   await smtp.sendMail({ from: config.smtp.from, to: invoice.customer_email, subject, text, html });
 }
+
+/** Politely chases an overdue invoice. Without SMTP it is printed to the console and kept in the outbox. */
+export async function sendReminderEmail(invoice, link) {
+  const subject = `Reminder: invoice ${invoice.number} is overdue`;
+  const text = [
+    `Hi ${invoice.customer_name},`,
+    '',
+    `Invoice ${invoice.number} was due on ${invoice.due_date} and ${invoice.outstanding.toFixed(2)} is still outstanding.`,
+    `You can view it and pay online here: ${link}`,
+    '',
+    'If you have already paid, please ignore this message.',
+    'Brightloop Software',
+  ].join('\n');
+  const html = `
+    <div style="font-family:system-ui,sans-serif;max-width:480px;color:#14201e">
+      <p>Hi ${escapeHtml(invoice.customer_name)},</p>
+      <p>Invoice <strong>${escapeHtml(invoice.number)}</strong> was due on ${escapeHtml(invoice.due_date)} and <strong>${invoice.outstanding.toFixed(2)}</strong> is still outstanding.</p>
+      <p><a href="${escapeHtml(link)}" style="display:inline-block;background:#d8fd34;color:#050505;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:600">View and pay</a></p>
+      <p style="color:#55655f;font-size:14px">If you have already paid, please ignore this message. Brightloop Software</p>
+    </div>`;
+
+  const smtp = getTransport();
+  if (!smtp) {
+    outbox.push({ to: invoice.customer_email, link, invoice: invoice.number, kind: 'reminder', at: new Date() });
+    if (outbox.length > 50) outbox.shift();
+    console.log(`\n[mail] Reminder for ${invoice.number} to ${invoice.customer_email}\n       ${link}\n`);
+    return;
+  }
+  await smtp.sendMail({ from: config.smtp.from, to: invoice.customer_email, subject, text, html });
+}

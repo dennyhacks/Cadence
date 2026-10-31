@@ -3,7 +3,7 @@ export function Button({ loading = false, loadingText, children, className = '',
     <button
       {...props}
       disabled={loading || props.disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-leaf-600 px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-leaf-700 disabled:cursor-not-allowed disabled:opacity-70 ${className}`}
+      className={`flex w-full items-center justify-center gap-2 rounded-full bg-leaf-600 px-4 py-2.5 text-base font-semibold text-black transition-colors hover:bg-leaf-700 disabled:cursor-not-allowed disabled:opacity-70 ${className}`}
     >
       {loading && (
         <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">

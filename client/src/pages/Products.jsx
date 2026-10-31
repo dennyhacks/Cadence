@@ -7,7 +7,7 @@ import { formatMoney } from '../format.js';
 import { useTitle } from '../useTitle.js';
 
 export const addLinkClass =
-  'inline-flex items-center rounded-lg bg-leaf-600 px-4 py-2.5 font-semibold text-white hover:bg-leaf-700';
+  'inline-flex items-center rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700';
 
 export default function Products() {
   useTitle('Products');
@@ -28,7 +28,7 @@ export default function Products() {
       {!error && products === null && <p className="text-muted">Loading products…</p>}
       {products?.length === 0 && <p className="text-muted">No products yet. Add the first one.</p>}
       {products?.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr>

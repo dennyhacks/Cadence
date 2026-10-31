@@ -27,7 +27,7 @@ export default function Templates() {
       {!error && templates === null && <p className="text-muted">Loading templates…</p>}
       {templates?.length === 0 && <p className="text-muted">No templates yet. Add the first one.</p>}
       {templates?.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr>

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { formatMoney } from '../format.js';
 
 // Invoiced and collected per month. Two series, so a legend is always shown and a table view is one click away.
-// Colours were checked for colour-blind separation: amber for invoiced, green for collected.
+// Colours were checked against the dark surface for colour-blind separation and contrast: amber for invoiced, green for collected.
 export const SERIES = [
-  { key: 'invoiced', label: 'Invoiced', color: '#D9930D' },
-  { key: 'collected', label: 'Collected', color: '#0A8F7A' },
+  { key: 'invoiced', label: 'Invoiced', color: '#BC7F0C' },
+  { key: 'collected', label: 'Collected', color: '#17A58B' },
 ];
 
 const compact = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', maximumFractionDigits: 1 });
@@ -49,7 +49,7 @@ export default function MonthlyChart({ months }) {
             </li>
           ))}
         </ul>
-        <button type="button" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable} className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:bg-paper">
+        <button type="button" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable} className="rounded-full border border-line px-3 py-1.5 text-sm font-medium hover:bg-white/10">
           {asTable ? 'Show chart' : 'Show as table'}
         </button>
       </div>
@@ -57,7 +57,7 @@ export default function MonthlyChart({ months }) {
       {asTable ? (
         <div className="max-h-80 overflow-auto rounded-lg border border-line">
           <table className="w-full text-left text-sm">
-            <thead className="sticky top-0 border-b border-line bg-white text-muted">
+            <thead className="sticky top-0 border-b border-line bg-surface text-muted">
               <tr>
                 <th scope="col" className="px-3 py-2 font-medium">Month</th>
                 <th scope="col" className="px-3 py-2 text-right font-medium">Invoiced</th>
@@ -80,8 +80,8 @@ export default function MonthlyChart({ months }) {
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[620px]" role="img" aria-label={`Invoiced and collected per month, ${monthLabel(months[0].month)} to ${monthLabel(months.at(-1).month)}. Use Show as table for the numbers.`}>
             {ticks.map((t) => (
               <g key={t}>
-                <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} stroke="#D3DDD8" strokeWidth="1" opacity={t === 0 ? 1 : 0.6} />
-                <text x={M.left - 8} y={y(t) + 4} textAnchor="end" fontSize="11" fill="#55655F">{compact.format(t)}</text>
+                <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} stroke="#2A2A2A" strokeWidth="1" opacity={t === 0 ? 1 : 0.6} />
+                <text x={M.left - 8} y={y(t) + 4} textAnchor="end" fontSize="11" fill="#A3A3A0">{compact.format(t)}</text>
               </g>
             ))}
             {months.map((m, i) => {
@@ -97,7 +97,7 @@ export default function MonthlyChart({ months }) {
                     ) : null;
                   })}
                   {i % everyNth === 0 && (
-                    <text x={cx} y={H - 12} textAnchor="middle" fontSize="11" fill="#55655F">{monthLabel(m.month)}</text>
+                    <text x={cx} y={H - 12} textAnchor="middle" fontSize="11" fill="#A3A3A0">{monthLabel(m.month)}</text>
                   )}
                   {/* A wide invisible target for each month, bigger than the bars, for mouse and keyboard. */}
                   <rect
@@ -121,7 +121,7 @@ export default function MonthlyChart({ months }) {
           {hovered && (
             <div
               role="status"
-              className="pointer-events-none absolute top-2 z-10 rounded-lg border border-line bg-white px-3 py-2 text-sm"
+              className="pointer-events-none absolute top-2 z-10 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
               style={{ left: `${Math.min(70, Math.max(2, ((M.left + slot * active) / W) * 100))}%` }}
             >
               <p className="font-medium">{monthLong(hovered.month)}</p>

@@ -147,7 +147,7 @@ export default function SubscriptionForm() {
           <Button type="submit" loading={saving} loadingText="Saving…" className="w-auto!">
             {editing ? 'Save changes' : 'Save as draft'}
           </Button>
-          <Link to={editing ? `/subscriptions/${id}` : '/subscriptions'} className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Cancel</Link>
+          <Link to={editing ? `/subscriptions/${id}` : '/subscriptions'} className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Cancel</Link>
         </div>
       </form>
     </>

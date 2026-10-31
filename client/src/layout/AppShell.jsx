@@ -6,8 +6,8 @@ import Icon from '../components/Icon.jsx';
 import { navFor, ROLE_LABEL } from './nav.js';
 
 const linkClass = ({ isActive }) =>
-  `flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] font-medium transition-colors ${
-    isActive ? 'bg-pine-700 text-white' : 'text-pine-200 hover:bg-pine-800 hover:text-white'
+  `flex items-center gap-3 rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors ${
+    isActive ? 'bg-pine-700 text-leaf-600' : 'text-pine-200 hover:bg-pine-800 hover:text-white'
   }`;
 
 function Sidebar({ items, onNavigate }) {
@@ -46,7 +46,7 @@ export default function AppShell() {
     <div className="min-h-screen lg:grid lg:grid-cols-[16rem_1fr] print:block">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2"
       >
         Skip to content
       </a>
@@ -87,7 +87,7 @@ export default function AppShell() {
       )}
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-3 backdrop-blur sm:px-6 print:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-surface/95 px-4 py-3 backdrop-blur sm:px-6 print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -95,7 +95,7 @@ export default function AppShell() {
               aria-expanded={open}
               aria-controls="mobile-menu"
               onClick={() => setOpen(true)}
-              className="rounded-lg p-1.5 text-ink hover:bg-paper lg:hidden"
+              className="rounded-lg p-1.5 text-ink hover:bg-white/10 lg:hidden"
             >
               <Icon name="menu" />
             </button>
@@ -112,7 +112,7 @@ export default function AppShell() {
             <button
               type="button"
               onClick={logout}
-              className="flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 font-medium hover:bg-paper"
+              className="flex items-center gap-2 rounded-full border border-line px-3 py-1.5 font-medium hover:bg-white/10"
             >
               <Icon name="signout" className="size-4" />
               <span className="hidden sm:inline">Sign out</span>

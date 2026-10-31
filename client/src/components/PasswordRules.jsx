@@ -11,7 +11,7 @@ export default function PasswordRules({ value }) {
             <span
               aria-hidden="true"
               className={`grid size-4 shrink-0 place-items-center rounded-full border ${
-                met ? 'border-leaf-600 bg-leaf-600 text-white' : 'border-line bg-white'
+                met ? 'border-leaf-600 bg-leaf-600 text-black' : 'border-line bg-surface'
               }`}
             >
               {met && (

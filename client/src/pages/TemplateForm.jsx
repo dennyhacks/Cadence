@@ -104,7 +104,7 @@ export default function TemplateForm() {
           <Button type="submit" loading={saving} loadingText="Saving…" className="w-auto!">
             {editing ? 'Save changes' : 'Add template'}
           </Button>
-          <Link to="/templates" className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Cancel</Link>
+          <Link to="/templates" className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Cancel</Link>
           {editing && <DeleteButton label="Delete template" busy={saving} onConfirm={onDelete} />}
         </div>
       </form>
