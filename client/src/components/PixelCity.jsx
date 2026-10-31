@@ -192,18 +192,16 @@ export default function PixelCity() {
   return (
     <section aria-labelledby="street-heading" className="pc-sky relative overflow-hidden border-t border-line">
       <div className="mx-auto max-w-6xl px-5 pb-6 pt-16 text-center sm:px-8">
-        <span className="inline-flex rounded-full border border-white/20 px-3.5 py-1 text-sm text-pine-200">Always on</span>
-        <h2 id="street-heading" className="mx-auto mt-4 max-w-2xl font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+        <h2 id="street-heading" className="neon-text mx-auto max-w-2xl font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
           Billing keeps running after everyone goes home.
         </h2>
-        <p className="mt-3 text-pine-200">Poke around. Hover a shop to see what it does.</p>
       </div>
 
       <div className="overflow-x-auto" onMouseMove={onMove} style={{ '--px': parallax }}>
         <div className="relative mx-auto min-w-[760px] max-w-[1500px]">
           <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" shapeRendering="crispEdges" role="img" aria-label="A pixel-art night street with shops named Invoices, Plans, Payments and Reports, palm trees and people walking.">
             {/* Stars and moon */}
-            <g style={{ transform: 'translateX(calc(var(--px, 0) * -2px))' }}>
+            <g style={{ transform: 'translateX(calc(var(--px, 0) * -0.4px))' }}>
               {STARS.map((s, i) => (
                 <rect key={i} className="pc-star" x={s.x} y={s.y} width={s.big ? 2 : 1} height={s.big ? 2 : 1} fill={s.big ? '#d8fd34' : '#ffffff'} style={{ animationDelay: `${s.d}s` }} />
               ))}
@@ -212,7 +210,7 @@ export default function PixelCity() {
             </g>
 
             {/* Far skyline */}
-            <g style={{ transform: 'translateX(calc(var(--px, 0) * 4px))' }}>
+            <g style={{ transform: 'translateX(calc(var(--px, 0) * 0.8px))' }}>
               {[[0, 62, 26], [30, 54, 20], [58, 66, 30], [96, 48, 18], [122, 60, 24], [152, 52, 22], [182, 64, 28], [216, 50, 20], [244, 60, 26], [276, 54, 24], [304, 64, 22]].map(([x, y, w], i) => (
                 <g key={i}>
                   <rect x={x} y={y} width={w} height={GROUND - y} fill="#150a2e" />
@@ -232,7 +230,7 @@ export default function PixelCity() {
             ))}
 
             {/* Palms, shops and the big sign */}
-            <g style={{ transform: 'translateX(calc(var(--px, 0) * 8px))' }}>
+            <g style={{ transform: 'translateX(calc(var(--px, 0) * 1.4px))' }}>
               <Palm x={0} scale={1} />
               <Palm x={112} scale={0.9} />
               <Palm x={232} scale={1} />
@@ -293,6 +291,7 @@ export default function PixelCity() {
           )}
         </div>
       </div>
+      <p className="px-5 pb-8 pt-4 text-center text-xs text-pine-300">Poke around: hover a shop to see what it does.</p>
     </section>
   );
 }
