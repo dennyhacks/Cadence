@@ -2,7 +2,7 @@
   "name": "cadence",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20.19" },
+  "engines": { "node": "22.x" },
   "version": "0.1.0",
   "description": "Cadence: subscription management and recurring billing for Brightloop Software",
   "scripts": {
