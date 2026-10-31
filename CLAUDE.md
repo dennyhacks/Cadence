@@ -71,11 +71,11 @@ To check the UI, install `puppeteer-core` and `@sparticuz/chromium` outside the 
 
 ## Status and plan
 
-Branches on GitHub: `setup/init` (README only), `feature/login` and `feature/dashboard`. Nothing is on `main` yet.
+Branches on GitHub: `setup/init` (README only), `feature/login`, `feature/dashboard` and `feature/products-plans`. Nothing is on `main` yet.
 
 - [x] **Phase 1, login (`feature/login`):** sign in, sign up, forgot and reset password (emailed link, printed to the console without SMTP), roles, admin-only staff creation API (`POST /api/users/staff`, `GET /api/users`), placeholder landing page at `/`.
 - [x] **Phase 2, dashboard shell (`feature/dashboard`):** sidebar and top bar with a different menu per role (`client/src/layout/nav.js`), admin Staff screen (list and add, `GET /api/users?role=staff`), customer portal frame (Subscriptions and Invoices only). Later-phase screens are `Section` placeholders; replace them with real pages in their phase and keep the same routes.
-- [ ] **Phase 3, products and plans:**
+- [x] **Phase 3, products and plans (`feature/products-plans`, branched from `feature/dashboard`):** API at `/api/products` and `/api/plans` (admin and staff, full CRUD, variants add a fixed extra price), screens `/products` and `/plans` with add and edit forms, demo products and plans in the seed. Money shows as INR via `client/src/format.js`. Brief details:
   - Product: name, type, sales price, cost price, notes, and variants (for example by brand: choosing the Odoo brand adds 560 to the price).
   - Plan: price, billing period (daily, weekly, monthly or yearly), minimum quantity, and the dates it is available.
   - The admin decides plan by plan whether it closes on its own at the end date, can be closed early, paused or renewed.

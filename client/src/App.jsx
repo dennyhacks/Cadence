@@ -9,6 +9,10 @@ import ResetPassword from './pages/ResetPassword.jsx';
 import Overview from './pages/Overview.jsx';
 import Section from './pages/Section.jsx';
 import Staff from './pages/Staff.jsx';
+import Products from './pages/Products.jsx';
+import ProductForm from './pages/ProductForm.jsx';
+import Plans from './pages/Plans.jsx';
+import PlanForm from './pages/PlanForm.jsx';
 
 const TEAM = ['admin', 'staff'];
 
@@ -57,8 +61,12 @@ export default function App() {
           />
 
           <Route element={<ProtectedRoute roles={TEAM} />}>
-            <Route path="/products" element={<Section title="Products" intro="What you sell, with prices and variants." />} />
-            <Route path="/plans" element={<Section title="Plans" intro="Billing periods, prices and availability." />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/new" element={<ProductForm />} />
+            <Route path="/products/:id" element={<ProductForm />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/plans/new" element={<PlanForm />} />
+            <Route path="/plans/:id" element={<PlanForm />} />
             <Route path="/templates" element={<Section title="Quotation templates" intro="Reusable quotes with a plan and product lines." />} />
             <Route path="/payments" element={<Section title="Payments" intro="Payments recorded against invoices." />} />
           </Route>

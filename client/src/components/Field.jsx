@@ -76,3 +76,48 @@ export function PasswordField({ id, label, labelRight, error, hint, ...input }) 
     </FieldShell>
   );
 }
+
+export function Select({ id, label, error, hint, children, ...input }) {
+  return (
+    <FieldShell id={id} label={label} error={error} hint={hint}>
+      <select
+        id={id}
+        name={id}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={describedBy(id, error, hint)}
+        className={inputClass(error)}
+        {...input}
+      >
+        {children}
+      </select>
+    </FieldShell>
+  );
+}
+
+export function Textarea({ id, label, error, hint, ...input }) {
+  return (
+    <FieldShell id={id} label={label} error={error} hint={hint}>
+      <textarea
+        id={id}
+        name={id}
+        rows={3}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={describedBy(id, error, hint)}
+        className={inputClass(error)}
+        {...input}
+      />
+    </FieldShell>
+  );
+}
+
+export function Checkbox({ id, label, hint, ...input }) {
+  return (
+    <div className="flex items-start gap-3">
+      <input id={id} name={id} type="checkbox" className="mt-1 size-4 accent-leaf-600" {...input} />
+      <label htmlFor={id} className="text-sm">
+        <span className="font-medium">{label}</span>
+        {hint && <span className="block text-muted">{hint}</span>}
+      </label>
+    </div>
+  );
+}
