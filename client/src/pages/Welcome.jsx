@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
 import CycleDial from '../components/CycleDial.jsx';
 import Icon from '../components/Icon.jsx';
+import { CountUp, CursorRing, ModuleTour, Tilt, useReveal, useSpotlight } from '../components/landing.jsx';
 
 // The public front page: what Cadence is, what it does, and a way in. Everything here is explanation and
 // illustration. The real data lives behind the sign-in.
@@ -44,10 +45,10 @@ const ROLES = [
 ];
 
 const STATS = [
-  ['4', 'billing periods', 'daily, weekly, monthly, yearly'],
-  ['1', 'invoice per period', 'enforced by the database, never twice'],
-  ['3', 'roles', 'admin, staff and customer'],
-  ['< 2 s', 'every page', 'tested with 20,000 subscriptions'],
+  [4, 'billing periods', 'daily, weekly, monthly, yearly'],
+  [1, 'invoice per period', 'enforced by the database, never twice'],
+  [3, 'roles', 'admin, staff and customer'],
+  [20000, 'subscriptions tested', 'every page answers in under 2 seconds'],
 ];
 
 /** A picture of the product, drawn in HTML. It is decorative, so assistive technology skips it. */
@@ -111,7 +112,7 @@ function ProductPreview() {
 
 function Section({ id, tag, title, children, className = '' }) {
   return (
-    <section id={id} className={`mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 ${className}`}>
+    <section id={id} data-reveal className={`mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 ${className}`}>
       <span className="inline-flex rounded-full border border-white/20 px-3.5 py-1 text-sm text-pine-200">{tag}</span>
       <h2 className="mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">{title}</h2>
       {children}
@@ -121,6 +122,8 @@ function Section({ id, tag, title, children, className = '' }) {
 
 export default function Welcome() {
   const { user } = useAuth();
+  const spotlight = useSpotlight();
+  useReveal();
 
   useEffect(() => {
     document.title = 'Cadence · Subscription billing';
@@ -128,12 +131,13 @@ export default function Welcome() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-paper text-ink">
+      <CursorRing />
       <a href="#story" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-leaf-600 focus:px-4 focus:py-2 focus:text-black">
         Skip to the story
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-paper/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
+      <header className="fixed inset-x-0 top-3 z-40 px-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 rounded-full border border-white/10 bg-paper/70 px-4 py-2 backdrop-blur-xl sm:px-6">
           <Link to="/welcome" aria-label="Cadence, subscription billing, home"><Logo light /></Link>
           <nav aria-label="Page sections" className="hidden items-center gap-7 text-sm text-pine-200 md:flex">
             <a href="#problem" className="hover:text-white">The problem</a>
@@ -157,7 +161,7 @@ export default function Welcome() {
       <main id="story">
         {/* Hero */}
         <div className="grid-bg hero-glow relative">
-          <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 text-center sm:px-8 sm:pb-32 sm:pt-24">
+          <div className="mx-auto max-w-6xl px-5 pb-24 pt-32 text-center sm:px-8 sm:pb-32 sm:pt-44">
             <span className="inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-sm text-pine-200">
               Subscription billing for Brightloop Software
             </span>
@@ -173,12 +177,14 @@ export default function Welcome() {
                 <Link to="/" className={`${primary} px-7 py-3 text-lg`}>Open Cadence</Link>
               ) : (
                 <>
-                  <Link to="/login" className={`${primary} px-7 py-3 text-lg`}>Sign in</Link>
-                  <Link to="/signup" className={`${outline} px-7 py-3 text-lg`}>Create an account</Link>
+                  <Link to="/login" data-cursor="Go" className={`${primary} px-7 py-3 text-lg`}>Sign in</Link>
+                  <Link to="/signup" data-cursor="Join" className={`${outline} px-7 py-3 text-lg`}>Create an account</Link>
                 </>
               )}
             </div>
-            <ProductPreview />
+            <Tilt className="mx-auto max-w-4xl">
+              <ProductPreview />
+            </Tilt>
           </div>
         </div>
 
@@ -198,6 +204,12 @@ export default function Welcome() {
           </p>
         </Section>
 
+        {/* The tour */}
+        <Section id="tour" tag="See it in action" title="Click through the product.">
+          <p className="mt-4 max-w-2xl text-lg text-pine-200">Five screens that cover the whole life of a subscription. Pick one, or let it play.</p>
+          <ModuleTour />
+        </Section>
+
         {/* How it works */}
         <div className="border-y border-line bg-surface/60">
           <Section id="how" tag="How it works" title="From first setup to the finance report, in four steps.">
@@ -215,9 +227,9 @@ export default function Welcome() {
 
         {/* Features */}
         <Section id="features" tag="What is inside" title="Everything a subscription business runs on.">
-          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul ref={spotlight} className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(([icon, title, text]) => (
-              <li key={title} className="group rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-leaf-600/60">
+              <li key={title} className="spotlight group rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-leaf-600/60">
                 <span className="grid size-11 place-items-center rounded-full bg-leaf-50 text-leaf-600">
                   <Icon name={icon} className="size-5" />
                 </span>
@@ -229,11 +241,11 @@ export default function Welcome() {
         </Section>
 
         {/* Numbers */}
-        <div className="border-y border-line">
+        <div className="border-y border-line" data-reveal>
           <div className="mx-auto grid max-w-6xl gap-px px-5 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
             {STATS.map(([big, label, note]) => (
               <div key={label} className="py-10 sm:px-6">
-                <p className="font-display text-6xl font-semibold text-leaf-600">{big}</p>
+                <p className="font-display text-6xl font-semibold text-leaf-600"><CountUp to={big} /></p>
                 <p className="mt-2 font-display text-xl font-semibold">{label}</p>
                 <p className="mt-1 text-sm text-muted">{note}</p>
               </div>
@@ -254,7 +266,7 @@ export default function Welcome() {
         </Section>
 
         {/* The way in */}
-        <section aria-labelledby="start-heading" className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
+        <section aria-labelledby="start-heading" data-reveal className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
           <div className="grid-bg relative overflow-hidden rounded-[2rem] bg-leaf-600 p-8 text-black sm:p-14">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" aria-hidden="true" />
             <div className="relative max-w-2xl">

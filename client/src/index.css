@@ -148,3 +148,109 @@
     animation: none;
   }
 }
+
+/* ---- Front page interactions ---- */
+
+/* The ring that follows the mouse. It grows over links and buttons, and shows a short label when one is set. */
+.cursor-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.5px solid rgb(216 253 52 / 0.75);
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    width 0.2s ease,
+    height 0.2s ease,
+    margin 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+  display: grid;
+  place-items: center;
+}
+.cursor-ring[data-active='1'] {
+  width: 70px;
+  height: 70px;
+  margin: -35px 0 0 -35px;
+  background: rgb(216 253 52 / 0.14);
+}
+.cursor-ring:not([data-label='']):not([data-label=''])::after {
+  content: attr(data-label);
+  font-size: 12px;
+  font-weight: 600;
+  color: #f4f4f2;
+}
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-ring {
+    display: none;
+  }
+}
+
+/* Sections fade up as they scroll into view. Only when JavaScript has switched this on. */
+.reveal-on [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+.reveal-on [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Cards that glow around the mouse. */
+.spotlight {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(216 253 52 / 0.16), transparent 65%);
+  transition: opacity 0.25s ease;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* The tour: the screen slides in, and a thin bar shows how long until the next one. */
+@keyframes tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tour-screen {
+  animation: tour-in 0.45s ease both;
+}
+@keyframes tour-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.tour-progress {
+  transform-origin: left;
+  animation: tour-fill 5.2s linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-screen,
+  .tour-progress {
+    animation: none;
+  }
+}
