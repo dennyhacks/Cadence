@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ApiError } from '../api.js';
 import { ErrorAlert, Notice } from '../components/ui.jsx';
 import { Field, Select, Textarea } from '../components/Field.jsx';
@@ -58,6 +58,64 @@ function PaymentForm({ invoice, onSaved }) {
   );
 }
 
+/** Customers pay by card here. It runs in test mode: only the published test cards work, and nothing is charged. */
+function PayOnline({ invoice, onPaid }) {
+  const [values, setValues] = useState({ card_number: '', expiry: '', cvc: '', name: '', amount: String(invoice.outstanding) });
+  const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
+  const [paying, setPaying] = useState(false);
+  const panel = useRef(null);
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash === '#pay') panel.current?.scrollIntoView({ block: 'start' });
+  }, [hash]);
+
+  const set = (key, format) => (e) => {
+    const value = format ? format(e.target.value) : e.target.value;
+    setValues((v) => ({ ...v, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+    setFormError('');
+  };
+  const groupDigits = (v) => v.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim();
+  const expiryFormat = (v) => {
+    const d = v.replace(/\D/g, '').slice(0, 4);
+    return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+  };
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setPaying(true);
+    setFormError('');
+    try {
+      const d = await api.post(`/invoices/${invoice.id}/pay`, { ...values, amount: toNumber(values.amount) });
+      onPaid(d.invoice);
+    } catch (err) {
+      if (err instanceof ApiError && err.errors) setErrors(err.errors);
+      else setFormError(err.message);
+      setPaying(false);
+    }
+  }
+
+  return (
+    <form id="pay" ref={panel} onSubmit={onSubmit} noValidate className="mt-8 max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-5 print:hidden">
+      <h2 className="font-display text-xl font-semibold">Pay this invoice</h2>
+      <Notice>Test mode: no real money moves. Use the test card 4242 4242 4242 4242, any future date and any 3 digits.</Notice>
+      <ErrorAlert>{formError}</ErrorAlert>
+      <Field id="card_number" label="Card number" inputMode="numeric" autoComplete="cc-number" placeholder="4242 4242 4242 4242" value={values.card_number} onChange={set('card_number', groupDigits)} error={errors.card_number} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="expiry" label="Expiry (MM/YY)" inputMode="numeric" autoComplete="cc-exp" placeholder="12/30" value={values.expiry} onChange={set('expiry', expiryFormat)} error={errors.expiry} />
+        <Field id="cvc" label="Security code" inputMode="numeric" autoComplete="cc-csc" placeholder="123" maxLength={4} value={values.cvc} onChange={set('cvc', (v) => v.replace(/\D/g, ''))} error={errors.cvc} />
+      </div>
+      <Field id="name" label="Name on card" autoComplete="cc-name" value={values.name} onChange={set('name')} error={errors.name} />
+      <Field id="pay_amount" label="Amount to pay" type="number" inputMode="decimal" min="0" step="0.01" value={values.amount} onChange={set('amount')} error={errors.amount} hint={`The full amount owed is ${formatMoney(invoice.outstanding)}. You can pay less now and the rest later.`} />
+      <button type="submit" disabled={paying} className="rounded-full bg-leaf-600 px-5 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
+        {paying ? 'Paying…' : `Pay ${formatMoney(toNumber(values.amount) || 0)}`}
+      </button>
+    </form>
+  );
+}
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const [inv, setInv] = useState(null);
@@ -78,6 +136,7 @@ export default function InvoiceDetail() {
       const d = await api.post(`/invoices/${id}/action`, { action });
       setInv(d.invoice);
       if (action === 'send') setNotice(`Sent to ${d.invoice.customer_email}.`);
+      if (action === 'remind') setNotice(`Reminder sent to ${d.invoice.customer_email}.`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -95,14 +154,14 @@ export default function InvoiceDetail() {
   }
 
   const team = inv.actions.length > 0 || inv.status === 'cancelled';
-  const primary = { confirm: 'Confirm invoice', send: inv.sent_at ? 'Send again' : 'Send to customer' };
+  const primary = { confirm: 'Confirm invoice', send: inv.sent_at ? 'Send again' : 'Send to customer', remind: 'Send reminder' };
 
   return (
     <>
       <Link to="/invoices" className="text-sm font-medium text-leaf-700 hover:underline print:hidden">{team ? 'All invoices' : 'My invoices'}</Link>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 print:hidden">
-        {['confirm', 'send'].filter((a) => inv.actions.includes(a)).map((a) => (
+        {['confirm', 'send', 'remind'].filter((a) => inv.actions.includes(a)).map((a) => (
           <button key={a} type="button" disabled={busy} onClick={() => run(a)} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
             {primary[a]}
           </button>
@@ -115,6 +174,7 @@ export default function InvoiceDetail() {
       <div className="mt-4 space-y-3 print:hidden">
         <ErrorAlert>{error}</ErrorAlert>
         <Notice>{notice}</Notice>
+        {team && inv.reminded_at && <p className="text-sm text-muted">Last reminder sent {formatDay(inv.reminded_at.slice(0, 10))}.</p>}
       </div>
 
       <article className="mt-5 rounded-2xl border border-line bg-surface p-6 sm:p-8 print:mt-0 print:rounded-none print:border-0 print:p-0">
@@ -220,6 +280,7 @@ export default function InvoiceDetail() {
         {inv.status === 'paid' && <p className="mt-6 font-display text-lg font-semibold text-leaf-700">Paid in full. Thank you.</p>}
       </article>
 
+      {inv.can_pay_online && !team && <PayOnline key={inv.amount_paid} invoice={inv} onPaid={setInv} />}
       {inv.can_record_payment && <PaymentForm key={inv.amount_paid} invoice={inv} onSaved={setInv} />}
     </>
   );

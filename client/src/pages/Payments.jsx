@@ -25,6 +25,9 @@ export default function Payments() {
   return (
     <>
       <PageHeader title="Payments">Payments recorded against invoices. To record one, open the invoice.</PageHeader>
+      <div className="mb-4">
+        <a href="/api/payments/export.csv" download className="inline-flex rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Export CSV</a>
+      </div>
       <ErrorAlert>{error}</ErrorAlert>
       {!error && data === null && <p className="text-muted">Loading payments…</p>}
       {data?.payments.length === 0 && <p className="text-muted">No payments recorded yet.</p>}

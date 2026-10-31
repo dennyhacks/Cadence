@@ -90,6 +90,7 @@ export default function Invoices() {
           <button type="button" onClick={generate} disabled={generating} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
             {generating ? 'Generating…' : 'Generate due invoices'}
           </button>
+          <a href={`/api/invoices/export.csv${status ? `?status=${status}` : ''}`} download className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Export CSV</a>
           <p className="text-sm text-muted">This also runs on its own every hour. Running it again never bills anything twice.</p>
         </div>
       )}
@@ -136,6 +137,9 @@ export default function Invoices() {
                     <td className="hidden whitespace-nowrap px-4 py-3 text-right sm:table-cell">{formatMoney(i.amount_paid)}</td>
                     <td className={`whitespace-nowrap px-4 py-3 text-right ${i.is_overdue ? 'font-medium text-danger' : ''}`}>
                       {i.status === 'cancelled' ? '–' : formatMoney(i.outstanding)}
+                      {mine && i.status === 'confirmed' && i.outstanding > 0 && (
+                        <Link to={`/invoices/${i.id}#pay`} className="mt-1 block w-fit rounded-full bg-leaf-600 px-2.5 py-0.5 text-xs font-semibold text-black hover:bg-leaf-700 sm:ml-auto">Pay now</Link>
+                      )}
                     </td>
                   </tr>
                 ))}
