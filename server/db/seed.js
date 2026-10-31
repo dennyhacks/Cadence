@@ -7,6 +7,8 @@ const demoUsers = [
   { name: 'Asha Verma', email: 'admin@cadence.test', password: 'Admin@12345', role: 'admin' },
   { name: 'Sam Rivera', email: 'staff@cadence.test', password: 'Staff@12345', role: 'staff' },
   { name: 'Northwind Traders', email: 'customer@cadence.test', password: 'Customer@12345', role: 'customer' },
+  { name: 'Kite Studio', email: 'kite@cadence.test', password: 'Customer@12345', role: 'customer' },
+  { name: 'Orbit Labs', email: 'orbit@cadence.test', password: 'Customer@12345', role: 'customer' },
 ];
 
 const demoProducts = [
@@ -72,6 +74,71 @@ async function seedTaxesAndDiscounts() {
   }
 }
 
+// [product, 'Attribute: Value' or null, quantity, tax names]
+const demoTemplates = [
+  ['Team starter bundle', 'Starter monthly', 14, [['Team Workspace Suite', 'Brand: Odoo', 1, ['GST 18%']], ['Priority Support', null, 1, ['GST 18%']]]],
+  ['Growth annual bundle', 'Growth yearly', 30, [['Team Workspace Suite', 'Brand: Zoho', 3, ['GST 18%']], ['Analytics Add-on', null, 1, ['GST 18%']]]],
+  ['Onboarding pack', 'Team weekly', 7, [['Onboarding Kit', null, 3, ['GST 12%']]]],
+];
+
+// [customer email, plan, status, paused, start, expiry, terms, quote valid until, lines]
+const demoSubscriptions = [
+  ['orbit@cadence.test', 'Starter monthly', 'draft', 0, '2026-11-01', '2026-11-30', 'net_30', null, [['Team Workspace Suite', 'Brand: Odoo', 2, ['GST 18%']]]],
+  ['kite@cadence.test', 'Growth yearly', 'quotation', 0, '2026-10-25', '2027-10-24', 'net_15', '2026-11-10', [['Team Workspace Suite', 'Brand: Zoho', 3, ['GST 18%']], ['Analytics Add-on', null, 1, ['GST 18%']]]],
+  ['customer@cadence.test', 'Team weekly', 'confirmed', 0, '2026-10-28', '2027-01-31', 'immediate', null, [['Onboarding Kit', null, 3, ['GST 12%']]]],
+  ['customer@cadence.test', 'Starter monthly', 'active', 0, '2026-03-01', '2026-11-30', 'net_15', null, [['Team Workspace Suite', 'Brand: Odoo', 1, ['GST 18%']], ['Priority Support', null, 1, ['GST 18%']]]],
+  ['kite@cadence.test', 'Starter monthly', 'active', 1, '2026-05-15', '2026-12-14', 'net_30', null, [['Analytics Add-on', 'Support: Priority', 2, ['GST 18%', 'Service charge']]]],
+  ['orbit@cadence.test', 'Growth yearly', 'active', 0, '2026-01-01', '2027-01-01', 'net_45', null, [['Team Workspace Suite', 'Brand: Custom', 5, ['GST 18%']], ['Priority Support', null, 5, ['GST 18%']]]],
+  ['kite@cadence.test', 'Trial daily', 'closed', 0, '2026-10-01', '2026-10-15', 'immediate', null, [['Priority Support', null, 1, []]]],
+];
+
+async function seedSubscriptions() {
+  const [{ n }] = await query('SELECT COUNT(*) AS n FROM subscriptions');
+  if (n > 0) return;
+
+  const idOf = async (table, name) => (await query(`SELECT id FROM ${table} WHERE name = ?`, [name]))[0]?.id;
+  const taxIds = async (names) => Promise.all(names.map((t) => idOf('taxes', t)));
+  const split = (label) => (label ? label.split(': ') : [null, null]);
+
+  for (const [name, planName, validity, lines] of demoTemplates) {
+    const planId = await idOf('plans', planName);
+    const result = await query('INSERT INTO quotation_templates (name, plan_id, validity_days) VALUES (?, ?, ?)', [name, planId, validity]);
+    for (const [product, variant, qty, taxes] of lines) {
+      const [attribute, value] = split(variant);
+      const line = await query(
+        'INSERT INTO template_lines (template_id, product_id, variant_attribute, variant_value, quantity) VALUES (?, ?, ?, ?, ?)',
+        [result.insertId, await idOf('products', product), attribute, value, qty]
+      );
+      for (const taxId of await taxIds(taxes)) await query('INSERT INTO template_line_taxes (line_id, tax_id) VALUES (?, ?)', [line.insertId, taxId]);
+    }
+    console.log(`Created  template ${name}`);
+  }
+
+  for (const [email, planName, status, paused, start, expiry, terms, quoteUntil, lines] of demoSubscriptions) {
+    const [customer] = await query('SELECT id FROM users WHERE email = ?', [email]);
+    const result = await query(
+      `INSERT INTO subscriptions (customer_id, plan_id, status, is_paused, start_date, expiry_date, payment_terms, quote_valid_until)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [customer.id, await idOf('plans', planName), status, paused, start, expiry, terms, quoteUntil]
+    );
+    await query("UPDATE subscriptions SET number = CONCAT('SUB-', LPAD(id, 5, '0')) WHERE id = ?", [result.insertId]);
+    for (const [product, variant, qty, taxes] of lines) {
+      const productId = await idOf('products', product);
+      const [attribute, value] = split(variant);
+      const [{ sales_price }] = await query('SELECT sales_price FROM products WHERE id = ?', [productId]);
+      const extra = attribute
+        ? Number((await query('SELECT extra_price FROM product_variants WHERE product_id = ? AND attribute = ? AND value = ?', [productId, attribute, value]))[0].extra_price)
+        : 0;
+      const line = await query(
+        'INSERT INTO subscription_lines (subscription_id, product_id, variant_label, quantity, unit_price) VALUES (?, ?, ?, ?, ?)',
+        [result.insertId, productId, variant, qty, Number(sales_price) + extra]
+      );
+      for (const taxId of await taxIds(taxes)) await query('INSERT INTO subscription_line_taxes (line_id, tax_id) VALUES (?, ?)', [line.insertId, taxId]);
+    }
+    console.log(`Created  subscription ${status.padEnd(9)} ${email}`);
+  }
+}
+
 async function seedCatalog() {
   for (const p of demoProducts) {
     const [existing] = await query('SELECT id FROM products WHERE name = ?', [p.name]);
@@ -116,6 +183,7 @@ async function main() {
   }
   await seedCatalog();
   await seedTaxesAndDiscounts();
+  await seedSubscriptions();
 }
 
 main()

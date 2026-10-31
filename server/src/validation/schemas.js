@@ -52,9 +52,12 @@ export function parse(schema, data) {
   if (result.success) return result.data;
 
   const errors = {};
+  const ROW = { lines: 'Line', variants: 'Variant' };
   for (const issue of result.error.issues) {
     const field = issue.path[0] ?? 'form';
-    if (!errors[field]) errors[field] = issue.message;
+    // A problem inside a list names the row, e.g. "Line 2: Choose a product."
+    const row = typeof issue.path[1] === 'number' && ROW[field] ? `${ROW[field]} ${issue.path[1] + 1}: ` : '';
+    if (!errors[field]) errors[field] = row + issue.message;
   }
   throw new HttpError(400, 'Fix the highlighted fields and try again.', errors);
 }
@@ -185,3 +188,60 @@ export const discountSchema = z
       ctx.addIssue({ code: 'custom', path: ['product_ids'], message: 'Choose at least one product.' });
     }
   });
+
+// ---- Quotation templates and subscriptions ----
+
+const id = (message) => z.number({ error: message }).int(message).positive(message);
+
+const line = z.object({
+  product_id: id('Choose a product.'),
+  variant: z
+    .object({ attribute: z.string().trim().min(1).max(60), value: z.string().trim().min(1).max(60) })
+    .nullable()
+    .optional()
+    .default(null),
+  quantity: z
+    .number({ error: 'Enter the quantity as a whole number.' })
+    .int('Enter the quantity as a whole number.')
+    .min(1, 'The quantity must be at least 1.')
+    .max(100000, 'The quantity is too large.'),
+  tax_ids: z.array(id('Choose a valid tax.')).max(10, 'Use at most 10 taxes on a line.').optional().default([]),
+});
+
+const lines = z.array(line).min(1, 'Add at least one product line.').max(50, 'Use at most 50 lines.');
+
+const validityDays = z
+  .number({ error: 'Enter the number of days as a whole number.' })
+  .int('Enter the number of days as a whole number.')
+  .min(1, 'It must be valid for at least 1 day.')
+  .max(365, 'It can be valid for at most 365 days.');
+
+export const PAYMENT_TERMS = ['immediate', 'net_15', 'net_30', 'net_45'];
+
+export const templateSchema = z.object({
+  name: text('a template name', 160),
+  plan_id: id('Choose a plan.'),
+  validity_days: validityDays,
+  lines,
+});
+
+export const subscriptionSchema = z
+  .object({
+    customer_id: id('Choose a customer.'),
+    plan_id: id('Choose a plan.'),
+    template_id: id('Choose a valid template.').nullable().optional().default(null),
+    start_date: isoDate('a start date'),
+    expiry_date: isoDate('an expiry date').nullable().optional().default(null),
+    payment_terms: z.enum(PAYMENT_TERMS, { error: 'Choose the payment terms.' }),
+    validity_days: validityDays.optional().default(30),
+    lines,
+  })
+  .superRefine((s, ctx) => {
+    if (s.expiry_date && s.expiry_date < s.start_date) {
+      ctx.addIssue({ code: 'custom', path: ['expiry_date'], message: 'The expiry date cannot be before the start date.' });
+    }
+  });
+
+export const transitionSchema = z.object({
+  action: z.enum(['send', 'confirm', 'activate', 'close', 'pause', 'resume', 'renew'], { error: 'Choose a valid action.' }),
+});
