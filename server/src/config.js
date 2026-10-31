@@ -35,6 +35,9 @@ export const config = {
   clientUrl: env.CLIENT_URL || 'http://localhost:5173',
   jwtSecret: env.JWT_SECRET || DEFAULT_SECRET,
   cookieSecure: env.COOKIE_SECURE === 'true',
+  // How many proxies sit in front of the app (Vercel adds one). Without this every visitor looks like the proxy,
+  // so the sign-in and reset limits would count everyone together.
+  trustProxy: Number(env.TRUST_PROXY) || (onVercel ? 1 : 0),
   bcryptRounds: Number(env.BCRYPT_ROUNDS) || 12,
   sessionDays: 7,
   resetMinutes: 60,

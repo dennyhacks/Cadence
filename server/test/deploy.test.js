@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 
 // Each test file runs in its own process, so this secret is set before the app loads.
 process.env.CRON_SECRET = 'test-cron-secret-123';
+process.env.TRUST_PROXY = '1';
 
 const { createApp } = await import('../src/app.js');
 const { pool, query } = await import('../src/db.js');
@@ -97,5 +98,24 @@ describe('work after the reply', () => {
       console.error = original;
     }
     assert.match(logged[0], /Test job failed: boom/);
+  });
+});
+
+describe('behind a proxy', () => {
+  const forgot = (ip) =>
+    fetch(`${base}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip },
+      body: JSON.stringify({ email: 'nobody.at.all@example.com' }),
+    });
+
+  test('each visitor is limited on their own address, not everyone together', async () => {
+    let blocked = 0;
+    for (let i = 0; i < 20 && !blocked; i += 1) {
+      if ((await forgot('203.0.113.7')).status === 429) blocked = i + 1;
+    }
+    assert.ok(blocked > 1, 'the first visitor is eventually limited, but not on their first try');
+    assert.equal((await forgot('203.0.113.7')).status, 429);
+    assert.equal((await forgot('198.51.100.9')).status, 200); // a different visitor is unaffected
   });
 });
