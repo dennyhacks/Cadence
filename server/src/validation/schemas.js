@@ -34,7 +34,14 @@ const newPassword = z
     }
   });
 
-export const signupSchema = z.object({ name, email, password: newPassword });
+const signupCompany = z
+  .string({ error: 'Enter your company name as text.' })
+  .trim()
+  .max(160, 'Company name must be 160 characters or fewer.')
+  .optional()
+  .default('');
+
+export const signupSchema = z.object({ name, email, company: signupCompany, password: newPassword });
 export const staffSchema = z.object({ name, email, password: newPassword });
 export const loginSchema = z.object({
   email,

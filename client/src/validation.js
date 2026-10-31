@@ -24,6 +24,13 @@ export function validateName(value) {
   return '';
 }
 
+export function validateCompany(value) {
+  const company = value.trim();
+  if (!company) return 'Enter your company name.';
+  if (company.length > 160) return 'Company name must be 160 characters or fewer.';
+  return '';
+}
+
 export function validateNewPassword(value) {
   if (!value) return 'Enter a password.';
   if (value.length > 64) return 'Password must be 64 characters or fewer.';
