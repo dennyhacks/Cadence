@@ -63,6 +63,14 @@ async function seedCustomerDetails() {
   for (const [email, company, phone, address] of demoDetails) {
     await query('UPDATE users SET company = ?, phone = ?, billing_address = ? WHERE email = ? AND company IS NULL', [company, phone, address, email]);
   }
+  // Demo invoices made before these details existed get them too. Only blank ones are filled, never an existing value.
+  await query(
+    `UPDATE invoices i JOIN users u ON u.id = i.customer_id
+        SET i.customer_company = u.company, i.customer_phone = u.phone, i.customer_address = u.billing_address
+      WHERE i.customer_company IS NULL AND i.customer_phone IS NULL AND i.customer_address IS NULL
+        AND u.email IN (${demoDetails.map(() => '?').join(', ')})`,
+    demoDetails.map((d) => d[0])
+  );
 }
 
 async function seedTaxesAndDiscounts() {
