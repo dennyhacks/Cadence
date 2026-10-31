@@ -264,3 +264,11 @@ export const paymentSchema = z.object({
   paid_on: isoDate('the payment date'),
   note: z.string().trim().max(500, 'The note must be 500 characters or fewer.').optional().default(''),
 });
+
+// ---- Finance dashboard ----
+
+export const dashboardQuerySchema = z.object({
+  from: isoDate('a start date').optional(),
+  to: isoDate('an end date').optional(),
+  plan_id: z.coerce.number({ error: 'Choose a valid plan.' }).int('Choose a valid plan.').positive('Choose a valid plan.').optional(),
+});
