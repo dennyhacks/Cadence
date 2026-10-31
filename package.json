@@ -1,0 +1,18 @@
+{
+  "name": "cadence",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cadence: subscription management and recurring billing for Brightloop Software",
+  "scripts": {
+    "setup": "npm install && npm --prefix server install && npm --prefix client install",
+    "db:setup": "npm --prefix server run db:setup",
+    "db:reset": "npm --prefix server run db:reset",
+    "db:seed:volume": "npm --prefix server run db:seed:volume --",
+    "dev": "concurrently -k -n api,web -c cyan,green \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "test": "npm --prefix server test",
+    "build": "npm --prefix client run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
