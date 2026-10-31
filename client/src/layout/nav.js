@@ -12,6 +12,7 @@ export const NAV = [
   { to: '/invoices', label: 'Invoices', icon: 'receipt', roles: ['admin', 'staff', 'customer'] },
   { to: '/payments', label: 'Payments', icon: 'wallet', roles: TEAM },
   { to: '/staff', label: 'Staff', icon: 'people', roles: ['admin'] },
+  { to: '/profile', label: 'My details', icon: 'user', roles: ['customer'] },
 ];
 
 export const navFor = (role) => NAV.filter((item) => item.roles.includes(role));

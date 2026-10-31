@@ -76,3 +76,11 @@ Or push to the branch connected in Vercel and it deploys on its own.
 - **Blank page or 500 on `/api/...`:** open the deployment's Logs in Vercel. A missing or wrong `DATABASE_URL`, or `DB_SSL` not set, is the usual cause.
 - **Cannot sign in on the site but the API is healthy:** check `COOKIE_SECURE=true` and that you are on the `https://` address.
 - **"Set a strong JWT_SECRET" error:** `JWT_SECRET` is missing in Production.
+
+## Updating the hosted database after a release
+
+When a release adds a database migration, apply it to the hosted database before (or just after) deploying. This is safe to repeat, it only adds what is missing, and it keeps the existing data:
+
+```bash
+npm run db:setup:remote
+```

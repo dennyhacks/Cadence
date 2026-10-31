@@ -31,6 +31,7 @@ export default function Taxes() {
               <tr>
                 <th scope="col" className="px-4 py-2.5 font-medium">Name</th>
                 <th scope="col" className="px-4 py-2.5 text-right font-medium">Rate</th>
+                <th scope="col" className="px-4 py-2.5 font-medium">Applied</th>
               </tr>
             </thead>
             <tbody>
@@ -40,6 +41,13 @@ export default function Taxes() {
                     <Link to={`/taxes/${t.id}`} className="text-leaf-700 underline-offset-2 hover:underline">{t.name}</Link>
                   </td>
                   <td className="px-4 py-3 text-right">{t.rate}%</td>
+                  <td className="px-4 py-3">
+                    {t.apply_automatically ? (
+                      <span className="rounded-full bg-leaf-50 px-2.5 py-0.5 text-xs font-medium text-leaf-700">Automatically</span>
+                    ) : (
+                      <span className="text-muted">When chosen</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

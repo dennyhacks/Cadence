@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { parse, subscriptionSchema, transitionSchema } from '../validation/schemas.js';
 import { today } from '../utils/pricing.js';
 import {
-  addDays, assignNumber, checkPlanWindow, getPlan, insertLines, listSubscriptions, loadSubscription, resolveLines, runAction,
+  addDays, applyPlanEnd, assignNumber, checkPlanWindow, getPlan, insertLines, listSubscriptions, loadSubscription, resolveLines, runAction,
 } from '../services/subscriptions.js';
 
 const router = Router();
@@ -73,6 +73,7 @@ async function validated(body) {
   const data = parse(subscriptionSchema, body);
   const plan = await getPlan(data.plan_id);
   checkPlanWindow(plan, data.start_date);
+  data.expiry_date = applyPlanEnd(plan, data.expiry_date);
   const [customer] = await query("SELECT id FROM users WHERE id = ? AND role = 'customer' AND is_active = 1", [data.customer_id]);
   if (!customer) throw new HttpError(400, 'Fix the highlighted fields and try again.', { customer_id: 'Choose a customer.' });
   if (data.template_id) {

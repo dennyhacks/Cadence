@@ -145,6 +145,7 @@ export const taxSchema = z.object({
     .min(0, 'The rate cannot be negative.')
     .max(100, 'The rate cannot be more than 100.')
     .refine((n) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6, 'Use at most 2 decimal places.'),
+  apply_automatically: z.boolean().optional().default(false),
 });
 
 const optionalMoney = (label) => money(label).nullable().optional().default(null);
@@ -205,7 +206,8 @@ const line = z.object({
     .int('Enter the quantity as a whole number.')
     .min(1, 'The quantity must be at least 1.')
     .max(100000, 'The quantity is too large.'),
-  tax_ids: z.array(id('Choose a valid tax.')).max(10, 'Use at most 10 taxes on a line.').optional().default([]),
+  // Left out, the taxes marked "apply automatically" are used. Sent (even empty), exactly what was chosen is used.
+  tax_ids: z.array(id('Choose a valid tax.')).max(10, 'Use at most 10 taxes on a line.').optional(),
 });
 
 const lines = z.array(line).min(1, 'Add at least one product line.').max(50, 'Use at most 50 lines.');
@@ -271,4 +273,21 @@ export const dashboardQuerySchema = z.object({
   from: isoDate('a start date').optional(),
   to: isoDate('an end date').optional(),
   plan_id: z.coerce.number({ error: 'Choose a valid plan.' }).int('Choose a valid plan.').positive('Choose a valid plan.').optional(),
+});
+
+// ---- Customer profile ----
+
+const optionalText = (label, max) =>
+  z
+    .string({ error: `Enter ${label} as text.` })
+    .trim()
+    .max(max, `${label[0].toUpperCase()}${label.slice(1)} must be ${max} characters or fewer.`)
+    .optional()
+    .default('');
+
+export const profileSchema = z.object({
+  name,
+  company: optionalText('the company name', 160),
+  phone: optionalText('the phone number', 30).refine((v) => v === '' || /^[+()\-.\s\d]{6,30}$/.test(v), 'Enter a valid phone number, for example +91 98765 43210.'),
+  billing_address: optionalText('the billing address', 500),
 });
