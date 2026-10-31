@@ -192,8 +192,8 @@ export default function PixelCity() {
   return (
     <section aria-labelledby="street-heading" className="pc-sky relative overflow-hidden border-t border-line">
       <div className="mx-auto max-w-6xl px-5 pb-6 pt-16 text-center sm:px-8">
-        <h2 id="street-heading" className="neon-text mx-auto max-w-2xl font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          Billing keeps running after everyone goes home.
+        <h2 id="street-heading" className="mx-auto max-w-3xl font-display text-3xl font-medium leading-tight tracking-tight text-white sm:text-5xl">
+          <span className="neon-text">Billing keeps running</span> after everyone goes home.
         </h2>
       </div>
 
