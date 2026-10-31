@@ -72,7 +72,7 @@ export default function Staff() {
           {!loadError && staff === null && <p className="text-muted">Loading staff…</p>}
           {staff?.length === 0 && <p className="text-muted">No staff yet. Add the first one.</p>}
           {staff?.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-line bg-white">
+            <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-line text-muted">
                   <tr>
@@ -95,7 +95,7 @@ export default function Staff() {
           )}
         </section>
 
-        <section aria-labelledby="staff-add" className="h-fit rounded-xl border border-line bg-white p-5">
+        <section aria-labelledby="staff-add" className="h-fit rounded-2xl border border-line bg-surface p-5">
           <h2 id="staff-add" className="mb-4 font-display text-lg font-semibold">
             Add a staff member
           </h2>

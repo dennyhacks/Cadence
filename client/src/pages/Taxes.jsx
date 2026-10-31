@@ -25,7 +25,7 @@ export default function Taxes() {
       {!error && taxes === null && <p className="text-muted">Loading taxes…</p>}
       {taxes?.length === 0 && <p className="text-muted">No taxes yet. Add the first one.</p>}
       {taxes?.length > 0 && (
-        <div className="max-w-2xl overflow-x-auto rounded-xl border border-line bg-white">
+        <div className="max-w-2xl overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr>

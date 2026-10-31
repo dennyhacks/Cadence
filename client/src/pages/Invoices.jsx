@@ -20,7 +20,7 @@ const FILTERS = [
 
 function Figure({ label, value, tone = '' }) {
   return (
-    <div className="rounded-xl border border-line bg-white px-4 py-3">
+    <div className="rounded-2xl border border-line bg-surface px-4 py-3">
       <dt className="text-sm text-muted">{label}</dt>
       <dd className={`mt-0.5 font-display text-xl font-semibold ${tone}`}>{value}</dd>
     </div>
@@ -87,7 +87,7 @@ export default function Invoices() {
 
       {!mine && (
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <button type="button" onClick={generate} disabled={generating} className="rounded-lg bg-leaf-600 px-4 py-2.5 font-semibold text-white hover:bg-leaf-700 disabled:opacity-70">
+          <button type="button" onClick={generate} disabled={generating} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
             {generating ? 'Generating…' : 'Generate due invoices'}
           </button>
           <p className="text-sm text-muted">This also runs on its own every hour. Running it again never bills anything twice.</p>
@@ -97,7 +97,7 @@ export default function Invoices() {
 
       <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Filter by status">
         {filters.map(([value, label]) => (
-          <button key={label} type="button" aria-pressed={status === value} onClick={() => choose(value)} className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${status === value ? 'bg-pine-900 text-white' : 'bg-white ring-1 ring-line hover:bg-paper'}`}>
+          <button key={label} type="button" aria-pressed={status === value} onClick={() => choose(value)} className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${status === value ? 'bg-leaf-600 text-black' : 'bg-surface ring-1 ring-line hover:bg-white/10'}`}>
             {label}
           </button>
         ))}
@@ -108,7 +108,7 @@ export default function Invoices() {
       {data?.invoices.length === 0 && <p className="text-muted">{status ? 'No invoices match this filter.' : 'No invoices yet.'}</p>}
       {data?.invoices.length > 0 && (
         <>
-          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line text-muted">
                 <tr>
@@ -145,9 +145,9 @@ export default function Invoices() {
           <nav className="mt-4 flex items-center justify-between text-sm" aria-label="Pages">
             <p className="text-muted">{data.total} invoice{data.total === 1 ? '' : 's'}</p>
             <div className="flex items-center gap-3">
-              <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Previous</button>
+              <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Previous</button>
               <span>Page {page} of {pages}</span>
-              <button type="button" disabled={page >= pages} onClick={() => go(page + 1)} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Next</button>
+              <button type="button" disabled={page >= pages} onClick={() => go(page + 1)} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Next</button>
             </div>
           </nav>
         </>

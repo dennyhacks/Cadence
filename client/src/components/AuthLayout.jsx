@@ -10,12 +10,13 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="hidden flex-col justify-between bg-pine-900 px-14 py-12 text-white lg:flex">
+      <aside className="hidden flex-col justify-between grid-bg bg-pine-900 px-14 py-12 text-white lg:flex">
         <Logo light />
         <CycleDial className="mx-auto my-10 w-full max-w-[340px]" />
         <div>
+          <span className="mb-5 inline-flex rounded-full border border-white/20 px-3.5 py-1 text-sm text-pine-200">Billing for Brightloop Software</span>
           <p className="max-w-md font-display text-4xl font-semibold leading-[1.1] tracking-tight">
-            Every renewal, invoice and payment in one place.
+            Every renewal, invoice and payment <span className="text-leaf-600">in one place.</span>
           </p>
           <p className="mt-4 max-w-sm text-pine-200">
             Cadence runs plans, subscriptions and billing for Brightloop Software.

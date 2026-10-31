@@ -33,7 +33,7 @@ export default function CycleDial({ className = '' }) {
           y2={t.y2}
           strokeWidth={t.i === CURRENT_TICK ? 4 : 3}
           strokeLinecap="round"
-          className={t.i === CURRENT_TICK ? 'stroke-signal' : t.i < CURRENT_TICK ? 'stroke-pine-300' : 'stroke-pine-700'}
+          className={t.i === CURRENT_TICK ? 'stroke-leaf-600' : t.i < CURRENT_TICK ? 'stroke-pine-300' : 'stroke-pine-700'}
         />
       ))}
 
@@ -48,10 +48,10 @@ export default function CycleDial({ className = '' }) {
         strokeDasharray={CIRCUMFERENCE}
         strokeDashoffset={CIRCUMFERENCE * (1 - FILLED)}
         transform={`rotate(-90 ${CX} ${CY})`}
-        className="dial-arc stroke-signal"
+        className="dial-arc stroke-leaf-600"
         style={{ '--dial-from': CIRCUMFERENCE, '--dial-to': CIRCUMFERENCE * (1 - FILLED) }}
       />
-      <circle cx={CX - RADIUS} cy={CY} r="9" strokeWidth="4" className="dial-dot fill-signal stroke-pine-900" />
+      <circle cx={CX - RADIUS} cy={CY} r="9" strokeWidth="4" className="dial-dot fill-leaf-600 stroke-pine-900" />
 
       <text x={CX} y={CY - 8} textAnchor="middle" className="fill-pine-200 font-sans text-[15px]">
         Renews

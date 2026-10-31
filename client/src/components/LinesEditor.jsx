@@ -19,7 +19,7 @@ export default function LinesEditor({ lines, onChange, products, taxes, error })
   const update = (i, patch) => onChange(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
   return (
-    <fieldset className="rounded-xl border border-line bg-white p-4">
+    <fieldset className="rounded-2xl border border-line bg-surface p-4">
       <legend className="px-1 font-display text-lg font-semibold">Product lines</legend>
       {lines.map((line, i) => {
         const product = products.find((p) => p.id === Number(line.product_id));
@@ -78,7 +78,7 @@ export default function LinesEditor({ lines, onChange, products, taxes, error })
               <button
                 type="button"
                 onClick={() => onChange(lines.filter((_, j) => j !== i))}
-                className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium hover:bg-paper"
+                className="rounded-full border border-line px-3 py-2.5 text-sm font-medium hover:bg-white/10"
               >
                 Remove<span className="sr-only"> line {i + 1}</span>
               </button>
@@ -115,7 +115,7 @@ export default function LinesEditor({ lines, onChange, products, taxes, error })
       <button
         type="button"
         onClick={() => onChange([...lines, emptyLine(automaticTaxIds(taxes))])}
-        className="rounded-lg border border-line px-4 py-2 font-medium hover:bg-paper"
+        className="rounded-full border border-line px-4 py-2 font-medium hover:bg-white/10"
       >
         Add line
       </button>

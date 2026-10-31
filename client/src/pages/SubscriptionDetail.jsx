@@ -96,18 +96,18 @@ export default function SubscriptionDetail() {
       <ErrorAlert>{error}</ErrorAlert>
       <div className="my-4 flex flex-wrap items-center gap-3">
         {plain.map((a) => (
-          <button key={a} type="button" disabled={busy} onClick={() => run(a)} className="rounded-lg bg-leaf-600 px-4 py-2.5 font-semibold text-white hover:bg-leaf-700 disabled:opacity-70">
+          <button key={a} type="button" disabled={busy} onClick={() => run(a)} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
             {ACTION[a]}
           </button>
         ))}
         {sub.actions.includes('close') && (
           <DeleteButton label="Close subscription" confirmLabel="Yes, close it" message="Closing ends this subscription." keepLabel="Keep it open" busy={busy} onConfirm={() => run('close')} />
         )}
-        {editable && <Link to={`/subscriptions/${sub.id}/edit`} className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Edit</Link>}
+        {editable && <Link to={`/subscriptions/${sub.id}/edit`} className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Edit</Link>}
         {team && sub.status === 'draft' && <DeleteButton label="Delete draft" busy={busy} onConfirm={remove} />}
       </div>
 
-      <dl className="grid gap-x-8 gap-y-4 rounded-xl border border-line bg-white p-5 sm:grid-cols-2 lg:grid-cols-3">
+      <dl className="grid gap-x-8 gap-y-4 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2 lg:grid-cols-3">
         <Fact label="Customer">{sub.customer_name}<span className="block text-sm font-normal text-muted">{sub.customer_email}</span></Fact>
         <Fact label="Plan">{sub.plan_name}<span className="block text-sm font-normal text-muted">{formatMoney(sub.plan_price)}, billed {sub.billing_period}</span></Fact>
         <Fact label="Payment terms">{TERMS[sub.payment_terms]}</Fact>
@@ -117,7 +117,7 @@ export default function SubscriptionDetail() {
       </dl>
 
       <h2 className="mb-3 mt-8 font-display text-lg font-semibold">Lines</h2>
-      <div className="overflow-x-auto rounded-xl border border-line bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-line text-muted">
             <tr>
@@ -151,7 +151,7 @@ export default function SubscriptionDetail() {
       {invoices.length > 0 && (
         <section className="mt-8" aria-labelledby="sub-invoices">
           <h2 id="sub-invoices" className="mb-3 font-display text-lg font-semibold">Invoices</h2>
-          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line text-muted">
                 <tr>

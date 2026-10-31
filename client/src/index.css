@@ -1,33 +1,37 @@
 @import 'tailwindcss';
 
-/* Cadence design tokens. Pine is the brand, leaf is the action color, signal is used sparingly. */
+/* Cadence design tokens: near-black surfaces with one lime accent. Existing class names are kept, only the values changed.
+   pine = dark chrome (menu, sign-in panel), leaf = the lime accent, surface = cards, paper = the page behind them. */
 @theme {
   --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Outfit Variable', ui-sans-serif, system-ui, sans-serif;
 
-  --color-pine-950: #072523;
-  --color-pine-900: #0c332f;
-  --color-pine-800: #124540;
-  --color-pine-700: #17564f;
-  --color-pine-300: #8fb8b0;
-  --color-pine-200: #bcd5cf;
+  --color-pine-950: #050505;
+  --color-pine-900: #0a0a0a;
+  --color-pine-800: #1a1a1a;
+  --color-pine-700: #262626;
+  --color-pine-300: #8a8a8a;
+  --color-pine-200: #c4c4c0;
 
-  --color-leaf-50: #e6f3ef;
-  --color-leaf-600: #0e7c6b;
-  --color-leaf-700: #0b665a;
+  --color-leaf-50: #1c2306;
+  --color-leaf-600: #d8fd34;
+  --color-leaf-700: #cdf22d;
 
-  --color-paper: #f2f5f3;
-  --color-line: #d3ddd8;
-  --color-ink: #14201e;
-  --color-muted: #55655f;
+  --color-paper: #0b0b0b;
+  --color-surface: #141414;
+  --color-line: #2a2a2a;
+  --color-ink: #f4f4f2;
+  --color-muted: #a3a3a0;
   --color-signal: #e3a72f;
-  --color-danger: #b3382c;
-  --color-danger-bg: #fbeeec;
+  --color-danger: #ff7a6b;
+  --color-danger-bg: #2b1411;
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Native pieces (date pickers, dropdown lists, scrollbars) follow the dark theme. */
+    color-scheme: dark;
   }
   body {
     @apply bg-paper font-sans text-ink antialiased;
@@ -88,4 +92,29 @@
     padding-right: 0.5rem;
     font-size: 0.8125rem;
   }
+}
+
+/* Paper stays white. On print, the tokens go back to dark text on a white page. */
+@media print {
+  :root {
+    --color-paper: #ffffff;
+    --color-surface: #ffffff;
+    --color-ink: #111111;
+    --color-muted: #555555;
+    --color-line: #dddddd;
+    --color-leaf-50: #e9f6c8;
+    --color-leaf-600: #4b6b00;
+    --color-leaf-700: #3c5600;
+    --color-danger: #b3382c;
+    --color-danger-bg: #fbeeec;
+    color-scheme: light;
+  }
+}
+
+/* A faint grid behind the dark panels, like blueprint paper. */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

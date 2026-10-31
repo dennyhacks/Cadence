@@ -7,13 +7,13 @@ export default function Logo({ light = false, className = '' }) {
           cx="14"
           cy="14"
           r="10"
-          stroke={light ? '#E3A72F' : '#0E7C6B'}
+          stroke="#D8FD34"
           strokeWidth="3.5"
           strokeLinecap="round"
           strokeDasharray="47 16"
           transform="rotate(-60 14 14)"
         />
-        <circle cx="14" cy="14" r="2.6" fill={light ? '#FFFFFF' : '#0C332F'} />
+        <circle cx="14" cy="14" r="2.6" fill="#F4F4F2" />
       </svg>
       <span className={`font-display text-xl font-semibold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
         Cadence

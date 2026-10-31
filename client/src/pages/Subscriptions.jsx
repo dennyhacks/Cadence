@@ -41,7 +41,7 @@ function StartSubscription() {
       <ErrorAlert>{error}</ErrorAlert>
       <ul className="grid gap-3 sm:grid-cols-2">
         {templates.map((t) => (
-          <li key={t.id} className="flex flex-col rounded-xl border border-line bg-white p-4">
+          <li key={t.id} className="flex flex-col rounded-2xl border border-line bg-surface p-4">
             <p className="font-medium">{t.name}</p>
             <p className="mt-0.5 text-sm text-muted">
               {t.plan_name}, billed {t.billing_period}
@@ -51,7 +51,7 @@ function StartSubscription() {
               type="button"
               disabled={busy === t.id}
               onClick={() => start(t.id)}
-              className="mt-3 self-start rounded-lg bg-leaf-600 px-4 py-2 font-semibold text-white hover:bg-leaf-700 disabled:opacity-70"
+              className="mt-3 self-start rounded-full bg-leaf-600 px-4 py-2 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70"
             >
               {busy === t.id ? 'Starting…' : 'Start this subscription'}
             </button>
@@ -104,7 +104,7 @@ export default function Subscriptions() {
             aria-pressed={status === s}
             onClick={() => choose(s)}
             className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${
-              status === s ? 'bg-pine-900 text-white' : 'bg-white ring-1 ring-line hover:bg-paper'
+              status === s ? 'bg-leaf-600 text-black' : 'bg-surface ring-1 ring-line hover:bg-white/10'
             }`}
           >
             {s ? STATUS_LABEL[s] : 'All'}
@@ -119,7 +119,7 @@ export default function Subscriptions() {
       )}
       {data?.subscriptions.length > 0 && (
         <>
-          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line text-muted">
                 <tr>
@@ -152,9 +152,9 @@ export default function Subscriptions() {
           <nav className="mt-4 flex items-center justify-between text-sm" aria-label="Pages">
             <p className="text-muted">{data.total} subscription{data.total === 1 ? '' : 's'}</p>
             <div className="flex items-center gap-3">
-              <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Previous</button>
+              <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Previous</button>
               <span>Page {page} of {pages}</span>
-              <button type="button" disabled={page >= pages} onClick={() => go(page + 1)} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Next</button>
+              <button type="button" disabled={page >= pages} onClick={() => go(page + 1)} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Next</button>
             </div>
           </nav>
         </>

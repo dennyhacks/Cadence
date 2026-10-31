@@ -118,4 +118,4 @@ docs/            the hackathon brief
 
 ## Design notes
 
-One colour scheme (pine and leaf green, with amber used sparingly), Bricolage Grotesque for headings and Instrument Sans for text, both bundled so the app works offline. Pages work from 390 px wide up, every input has a label, keyboard focus is visible, and motion respects the reduced-motion setting. The invoice page has a print layout.
+A dark interface with one lime accent: near-black surfaces, soft borders, pill-shaped buttons and tags, and big clean headings in Outfit, with Instrument Sans for tables and forms (both bundled, so the app works offline). The invoice page prints as dark text on white. Pages work from 390 px wide up, every input has a label, keyboard focus is visible, and motion respects the reduced-motion setting. The chart colours were checked for colour-blind separation and contrast on the dark surface.

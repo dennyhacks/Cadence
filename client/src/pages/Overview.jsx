@@ -32,7 +32,7 @@ function Figure({ label, value, note, to, tone = '' }) {
       {note && <dd className="mt-0.5 text-sm text-muted">{note}</dd>}
     </>
   );
-  const box = 'block rounded-xl border border-line bg-white px-4 py-4';
+  const box = 'block rounded-2xl border border-line bg-surface px-4 py-4';
   return to ? <Link to={to} className={`${box} hover:border-leaf-600`}>{body}</Link> : <div className={box}>{body}</div>;
 }
 
@@ -100,7 +100,7 @@ export default function Overview() {
         Where subscriptions, billing and payments stand{planName ? ` for ${planName}` : ''}.
       </PageHeader>
 
-      <form onSubmit={(e) => e.preventDefault()} className="mb-6 grid gap-4 rounded-xl border border-line bg-white p-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Filters">
+      <form onSubmit={(e) => e.preventDefault()} className="mb-6 grid gap-4 rounded-2xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Filters">
         <Select id="range" label="Period" value={preset} onChange={choosePreset}>
           {Object.entries(PRESETS).map(([value, p]) => (
             <option key={value} value={value}>{p.label}</option>
@@ -134,13 +134,13 @@ export default function Overview() {
             <Figure label="Overdue now" value={formatMoney(rev.overdue)} note={`${rev.overdue_count} invoice${rev.overdue_count === 1 ? '' : 's'} past due`} tone={rev.overdue_count ? 'text-danger' : ''} to="/invoices?status=overdue" />
           </dl>
 
-          <section className="mt-6 rounded-xl border border-line bg-white p-4 sm:p-5" aria-labelledby="chart-heading">
+          <section className="mt-6 rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="chart-heading">
             <h2 id="chart-heading" className="mb-1 font-display text-lg font-semibold">Invoiced and collected by month</h2>
             {empty ? <p className="py-10 text-center text-muted">No invoices or payments in this period. Try a longer one.</p> : <MonthlyChart months={data.months} />}
           </section>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-line bg-white p-4 sm:p-5" aria-labelledby="status-heading">
+            <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="status-heading">
               <h2 id="status-heading" className="mb-3 font-display text-lg font-semibold">Subscriptions by status</h2>
               <ul className="divide-y divide-line">
                 {STATUSES.map((s) => (
@@ -154,7 +154,7 @@ export default function Overview() {
               </ul>
             </section>
 
-            <section className="rounded-xl border border-line bg-white p-4 sm:p-5" aria-labelledby="plans-heading">
+            <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="plans-heading">
               <h2 id="plans-heading" className="mb-3 font-display text-lg font-semibold">By plan</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -180,7 +180,7 @@ export default function Overview() {
               </div>
             </section>
 
-            <section className="rounded-xl border border-line bg-white p-4 sm:p-5" aria-labelledby="overdue-heading">
+            <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="overdue-heading">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2 id="overdue-heading" className="font-display text-lg font-semibold">Longest overdue</h2>
                 <Link to="/invoices?status=overdue" className="text-sm font-medium text-leaf-700 hover:underline">See all overdue</Link>
@@ -204,7 +204,7 @@ export default function Overview() {
               )}
             </section>
 
-            <section className="rounded-xl border border-line bg-white p-4 sm:p-5" aria-labelledby="recent-heading">
+            <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="recent-heading">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2 id="recent-heading" className="font-display text-lg font-semibold">Latest payments</h2>
                 <Link to="/payments" className="text-sm font-medium text-leaf-700 hover:underline">See all payments</Link>

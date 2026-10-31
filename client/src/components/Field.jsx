@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export const inputClass = (hasError) =>
-  `block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base text-ink transition-colors focus:outline-none focus:ring-2 ${
+  `block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-base text-ink transition-colors focus:outline-none focus:ring-2 ${
     hasError
       ? 'border-danger focus:ring-danger/25'
       : 'border-line hover:border-pine-300 focus:border-leaf-600 focus:ring-leaf-600/25'

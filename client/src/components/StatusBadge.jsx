@@ -5,8 +5,8 @@ const TONE = {
   draft: 'bg-paper text-muted ring-1 ring-line',
   quotation: 'bg-signal/15 text-ink ring-1 ring-signal/40',
   confirmed: 'bg-leaf-50 text-leaf-700 ring-1 ring-leaf-600/30',
-  active: 'bg-leaf-600 text-white',
-  closed: 'bg-pine-900 text-pine-200',
+  active: 'bg-leaf-600 text-black',
+  closed: 'bg-white/10 text-ink ring-1 ring-white/20',
 };
 
 export default function StatusBadge({ status, paused }) {
@@ -27,7 +27,7 @@ export function StatusSteps({ status }) {
         <li key={s} aria-current={i === current ? 'step' : undefined} className="flex items-center gap-1">
           <span
             className={`rounded-full px-3 py-1 font-medium ${
-              i === current ? 'bg-leaf-600 text-white' : i < current ? 'bg-leaf-50 text-leaf-700' : 'bg-paper text-muted ring-1 ring-line'
+              i === current ? 'bg-leaf-600 text-black' : i < current ? 'bg-leaf-50 text-leaf-700' : 'bg-paper text-muted ring-1 ring-line'
             }`}
           >
             {STATUS_LABEL[s]}

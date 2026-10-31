@@ -30,7 +30,7 @@ export default function Payments() {
       {data?.payments.length === 0 && <p className="text-muted">No payments recorded yet.</p>}
       {data?.payments.length > 0 && (
         <>
-          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line text-muted">
                 <tr>
@@ -61,9 +61,9 @@ export default function Payments() {
           <nav className="mt-4 flex items-center justify-between text-sm" aria-label="Pages">
             <p className="text-muted">{data.total} payment{data.total === 1 ? '' : 's'}</p>
             <div className="flex items-center gap-3">
-              <button type="button" disabled={page <= 1} onClick={() => setParams({ page: page - 1 })} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Previous</button>
+              <button type="button" disabled={page <= 1} onClick={() => setParams({ page: page - 1 })} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Previous</button>
               <span>Page {page} of {pages}</span>
-              <button type="button" disabled={page >= pages} onClick={() => setParams({ page: page + 1 })} className="rounded-lg border border-line px-3 py-1.5 font-medium enabled:hover:bg-paper disabled:opacity-50">Next</button>
+              <button type="button" disabled={page >= pages} onClick={() => setParams({ page: page + 1 })} className="rounded-full border border-line px-3 py-1.5 font-medium enabled:hover:bg-white/10 disabled:opacity-50">Next</button>
             </div>
           </nav>
         </>

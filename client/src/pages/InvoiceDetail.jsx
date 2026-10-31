@@ -38,7 +38,7 @@ function PaymentForm({ invoice, onSaved }) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-8 max-w-xl space-y-4 rounded-xl border border-line bg-white p-5 print:hidden">
+    <form onSubmit={onSubmit} noValidate className="mt-8 max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-5 print:hidden">
       <h2 className="font-display text-lg font-semibold">Record a payment</h2>
       <ErrorAlert>{formError}</ErrorAlert>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -51,7 +51,7 @@ function PaymentForm({ invoice, onSaved }) {
         <Field id="paid_on" label="Date received" type="date" max={todayIso()} value={values.paid_on} onChange={set('paid_on')} error={errors.paid_on} />
       </div>
       <Textarea id="note" label="Note" value={values.note} onChange={set('note')} error={errors.note} hint="Optional, for example a cheque number." />
-      <button type="submit" disabled={saving} className="rounded-lg bg-leaf-600 px-4 py-2.5 font-semibold text-white hover:bg-leaf-700 disabled:opacity-70">
+      <button type="submit" disabled={saving} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
         {saving ? 'Saving…' : 'Record payment'}
       </button>
     </form>
@@ -103,11 +103,11 @@ export default function InvoiceDetail() {
 
       <div className="mt-3 flex flex-wrap items-center gap-3 print:hidden">
         {['confirm', 'send'].filter((a) => inv.actions.includes(a)).map((a) => (
-          <button key={a} type="button" disabled={busy} onClick={() => run(a)} className="rounded-lg bg-leaf-600 px-4 py-2.5 font-semibold text-white hover:bg-leaf-700 disabled:opacity-70">
+          <button key={a} type="button" disabled={busy} onClick={() => run(a)} className="rounded-full bg-leaf-600 px-4 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
             {primary[a]}
           </button>
         ))}
-        <button type="button" onClick={() => window.print()} className="rounded-lg border border-line px-4 py-2.5 font-semibold hover:bg-paper">Print</button>
+        <button type="button" onClick={() => window.print()} className="rounded-full border border-line px-4 py-2.5 font-semibold hover:bg-white/10">Print</button>
         {inv.actions.includes('cancel') && (
           <DeleteButton label="Cancel invoice" confirmLabel="Yes, cancel it" message="Cancelling cannot be undone." keepLabel="Keep it" busy={busy} onConfirm={() => run('cancel')} />
         )}
@@ -117,7 +117,7 @@ export default function InvoiceDetail() {
         <Notice>{notice}</Notice>
       </div>
 
-      <article className="mt-5 rounded-xl border border-line bg-white p-6 sm:p-8 print:mt-0 print:rounded-none print:border-0 print:p-0">
+      <article className="mt-5 rounded-2xl border border-line bg-surface p-6 sm:p-8 print:mt-0 print:rounded-none print:border-0 print:p-0">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-6">
           <div>
             <Logo />
