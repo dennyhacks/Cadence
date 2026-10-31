@@ -13,11 +13,15 @@ const linkClass = ({ isActive }) =>
 function Sidebar({ items, onNavigate }) {
   return (
     <nav aria-label="Main" className="flex flex-col gap-1 px-3">
-      {items.map((item) => (
-        <NavLink key={item.to} to={item.to} end={item.end} className={linkClass} onClick={onNavigate}>
-          <Icon name={item.icon} />
-          {item.label}
-        </NavLink>
+      {items.map((item, i) => (
+        <div key={item.to} className="contents">
+          {/* A thin line between sections of the menu: overview, setup, billing, account. */}
+          {i > 0 && items[i - 1].group !== item.group && <div role="separator" className="mx-3 my-2 border-t border-pine-800" />}
+          <NavLink to={item.to} end={item.end} className={linkClass} onClick={onNavigate}>
+            <Icon name={item.icon} />
+            {item.label}
+          </NavLink>
+        </div>
       ))}
     </nav>
   );

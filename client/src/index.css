@@ -37,6 +37,13 @@
     outline: 2px solid var(--color-leaf-600);
     outline-offset: 2px;
   }
+  /* A quiet highlight on the row under the pointer, so wide tables are easier to follow. */
+  tbody tr {
+    transition: background-color 120ms ease;
+  }
+  tbody tr:hover {
+    background-color: color-mix(in srgb, var(--color-leaf-50) 55%, transparent);
+  }
 }
 
 /* The billing dial draws itself once on load, then stays still. */
@@ -70,5 +77,15 @@
   .dial-arc,
   .dial-dot {
     animation: none;
+  }
+}
+
+/* On a phone, tables use tighter cells so the number, status and total all fit without scrolling sideways. */
+@media (max-width: 639px) {
+  tbody td,
+  thead th {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    font-size: 0.8125rem;
   }
 }

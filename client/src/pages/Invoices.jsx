@@ -113,11 +113,11 @@ export default function Invoices() {
               <thead className="border-b border-line text-muted">
                 <tr>
                   <th scope="col" className="px-4 py-2.5 font-medium">Invoice</th>
-                  {!mine && <th scope="col" className="px-4 py-2.5 font-medium">Customer</th>}
+                  {!mine && <th scope="col" className="hidden px-4 py-2.5 font-medium sm:table-cell">Customer</th>}
                   <th scope="col" className="px-4 py-2.5 font-medium">Status</th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">Due</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-medium">Total</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-medium">Paid</th>
+                  <th scope="col" className="hidden px-4 py-2.5 font-medium sm:table-cell">Due</th>
+                  <th scope="col" className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">Total</th>
+                  <th scope="col" className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">Paid</th>
                   <th scope="col" className="px-4 py-2.5 text-right font-medium">Outstanding</th>
                 </tr>
               </thead>
@@ -127,12 +127,13 @@ export default function Invoices() {
                     <td className="whitespace-nowrap px-4 py-3 font-medium">
                       <Link to={`/invoices/${i.id}`} className="text-leaf-700 underline-offset-2 hover:underline">{i.number}</Link>
                       <span className="block text-xs font-normal text-muted">{i.subscription_number}</span>
+                      {!mine && <span className="block text-xs font-normal text-muted sm:hidden">{i.customer_name}</span>}
                     </td>
-                    {!mine && <td className="px-4 py-3">{i.customer_name}</td>}
+                    {!mine && <td className="hidden px-4 py-3 sm:table-cell">{i.customer_name}</td>}
                     <td className="px-4 py-3"><InvoiceBadge status={i.status} overdue={i.is_overdue} /></td>
-                    <td className="whitespace-nowrap px-4 py-3">{formatDay(i.due_date)}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right">{formatMoney(i.total)}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right">{formatMoney(i.amount_paid)}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">{formatDay(i.due_date)}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-right sm:table-cell">{formatMoney(i.total)}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-right sm:table-cell">{formatMoney(i.amount_paid)}</td>
                     <td className={`whitespace-nowrap px-4 py-3 text-right ${i.is_overdue ? 'font-medium text-danger' : ''}`}>
                       {i.status === 'cancelled' ? '–' : formatMoney(i.outstanding)}
                     </td>
