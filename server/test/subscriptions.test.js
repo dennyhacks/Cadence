@@ -103,7 +103,8 @@ describe('creating a subscription', () => {
     assert.equal(s.status, 'draft');
     assert.equal(s.lines[0].unit_price, 2960); // 2400 + 560 for Brand: Odoo
     assert.equal(s.lines[0].variant_label, 'Brand: Odoo');
-    assert.deepEqual(s.totals, { untaxed: 5920, tax: 1065.6, total: 6985.6 });
+    // lines 5920 + 1065.60 tax, plus the Starter monthly plan price of 499
+    assert.deepEqual(s.totals, { plan_price: 499, untaxed: 5920, tax: 1065.6, total: 7484.6 });
     assert.deepEqual(s.actions, ['send']);
   });
 
@@ -158,12 +159,39 @@ describe('creating a subscription', () => {
     });
     assert.equal(edit.status, 200);
     assert.equal(edit.data.subscription.lines.length, 1);
-    assert.equal(edit.data.subscription.totals.total, 2400);
+    assert.equal(edit.data.subscription.totals.total, 2899); // 4 x 600 + the 499 plan price
     assert.equal((await call('DELETE', `/api/subscriptions/${id}`, { cookie: staff })).status, 204);
 
     const activeId = await makeActive();
     assert.equal((await call('PUT', `/api/subscriptions/${activeId}`, { cookie: staff, body: sub() })).status, 409);
     assert.equal((await call('DELETE', `/api/subscriptions/${activeId}`, { cookie: staff })).status, 409);
+  });
+});
+
+describe('plan price', () => {
+  test('is added once to the total, saved on the subscription, and survives a later plan price change', async () => {
+    const res = await call('POST', '/api/subscriptions', { cookie: staff, body: sub({ lines: [{ product_id: ids.support, quantity: 1, tax_ids: [] }] }) });
+    const id = res.data.subscription.id;
+    created.push(id);
+    assert.equal(res.data.subscription.plan_price, 499);
+    assert.equal(res.data.subscription.totals.total, 1099); // 600 + 499
+
+    await query('UPDATE plans SET price = 999 WHERE id = ?', [ids.starter]);
+    try {
+      const after = await call('GET', `/api/subscriptions/${id}`, { cookie: staff });
+      assert.equal(after.data.subscription.totals.total, 1099);
+      const edited = await call('PUT', `/api/subscriptions/${id}`, { cookie: staff, body: sub({ lines: [{ product_id: ids.support, quantity: 1, tax_ids: [] }] }) });
+      assert.equal(edited.data.subscription.totals.total, 1599); // editing re-reads the plan: 600 + 999
+    } finally {
+      await query('UPDATE plans SET price = 499 WHERE id = ?', [ids.starter]);
+    }
+  });
+
+  test('is included in the list totals and in a customer-started subscription', async () => {
+    const list = await call('GET', '/api/subscriptions?pageSize=100', { cookie: staff });
+    const closed = list.data.subscriptions.find((s) => s.number === 'SUB-00007');
+    assert.equal(closed.totals.plan_price, 19);
+    assert.equal(closed.totals.total, 619); // 600 line + 19 plan price, no tax
   });
 });
 
@@ -281,6 +309,8 @@ describe('the customer portal', () => {
     assert.equal(s.customer_id, ids.kiteId);
     assert.equal(s.lines.length, 2);
     assert.equal(s.lines[0].unit_price, 2960);
+    assert.equal(s.plan_price, 499);
+    assert.equal(s.totals.total, 4699.8); // lines 3560 + 640.80 tax + 499 plan price
     assert.deepEqual(s.actions, ['confirm']);
 
     assert.equal((await act(s.id, 'activate', kite)).status, 409);

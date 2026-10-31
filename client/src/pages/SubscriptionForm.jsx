@@ -6,7 +6,7 @@ import { Field, Select } from '../components/Field.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import LinesEditor, { emptyLine, linesFromApi, linesToBody } from '../components/LinesEditor.jsx';
 import { TERMS } from './SubscriptionDetail.jsx';
-import { toNumber } from '../format.js';
+import { formatMoney, toNumber } from '../format.js';
 import { useTitle } from '../useTitle.js';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -95,6 +95,8 @@ export default function SubscriptionForm() {
     }
   }
 
+  const chosenPlan = plans.find((p) => p.id === Number(values.plan_id));
+
   if (loading) return <p className="text-muted">Loading…</p>;
 
   return (
@@ -117,7 +119,14 @@ export default function SubscriptionForm() {
               <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
             ))}
           </Select>
-          <Select id="plan_id" label="Plan" value={values.plan_id} onChange={set('plan_id')} error={errors.plan_id}>
+          <Select
+            id="plan_id"
+            label="Plan"
+            value={values.plan_id}
+            onChange={set('plan_id')}
+            error={errors.plan_id}
+            hint={chosenPlan && `The plan price of ${formatMoney(chosenPlan.price)} is added to the lines, billed ${chosenPlan.billing_period}.`}
+          >
             <option value="">Choose a plan</option>
             {plans.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>

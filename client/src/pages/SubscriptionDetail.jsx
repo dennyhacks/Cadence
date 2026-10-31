@@ -107,7 +107,7 @@ export default function SubscriptionDetail() {
 
       <dl className="grid gap-x-8 gap-y-4 rounded-xl border border-line bg-white p-5 sm:grid-cols-2 lg:grid-cols-3">
         <Fact label="Customer">{sub.customer_name}<span className="block text-sm font-normal text-muted">{sub.customer_email}</span></Fact>
-        <Fact label="Plan">{sub.plan_name}<span className="block text-sm font-normal capitalize text-muted">Billed {sub.billing_period}</span></Fact>
+        <Fact label="Plan">{sub.plan_name}<span className="block text-sm font-normal text-muted">{formatMoney(sub.plan_price)}, billed {sub.billing_period}</span></Fact>
         <Fact label="Payment terms">{TERMS[sub.payment_terms]}</Fact>
         <Fact label="Starts">{formatDay(sub.start_date)}</Fact>
         <Fact label="Expires">{sub.expiry_date ? formatDay(sub.expiry_date) : 'No expiry date'}</Fact>
@@ -140,8 +140,9 @@ export default function SubscriptionDetail() {
         </table>
       </div>
       <dl className="ml-auto mt-4 w-full max-w-xs space-y-1.5 text-sm">
-        <div className="flex justify-between"><dt className="text-muted">Before tax</dt><dd>{formatMoney(sub.totals.untaxed)}</dd></div>
+        <div className="flex justify-between"><dt className="text-muted">Lines before tax</dt><dd>{formatMoney(sub.totals.untaxed)}</dd></div>
         <div className="flex justify-between"><dt className="text-muted">Tax</dt><dd>{formatMoney(sub.totals.tax)}</dd></div>
+        <div className="flex justify-between"><dt className="text-muted">{sub.plan_name} plan price</dt><dd>{formatMoney(sub.totals.plan_price)}</dd></div>
         <div className="flex justify-between border-t border-line pt-2 text-base font-semibold"><dt>Total</dt><dd>{formatMoney(sub.totals.total)}</dd></div>
       </dl>
     </>

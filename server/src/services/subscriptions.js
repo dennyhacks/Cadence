@@ -101,7 +101,7 @@ export async function assignNumber(conn, id) {
 
 // ---- Reading ----
 
-const SUB_COLUMNS = `s.id, s.number, s.status, s.is_paused, s.customer_id, s.plan_id, s.template_id,
+const SUB_COLUMNS = `s.id, s.number, s.status, s.is_paused, s.customer_id, s.plan_id, s.plan_price, s.template_id,
   s.payment_terms, s.validity_days, ${day('s.start_date')} AS start_date, ${day('s.expiry_date')} AS expiry_date,
   ${day('s.quote_valid_until')} AS quote_valid_until, c.name AS customer_name, c.email AS customer_email,
   p.name AS plan_name, p.billing_period, p.min_quantity, p.auto_close, p.closable, p.pausable, p.renewable`;
@@ -110,6 +110,7 @@ const FROM = 'FROM subscriptions s JOIN users c ON c.id = s.customer_id JOIN pla
 
 const normalise = (s) => ({
   ...s,
+  plan_price: Number(s.plan_price),
   is_paused: !!s.is_paused,
   auto_close: !!s.auto_close,
   closable: !!s.closable,
@@ -117,8 +118,12 @@ const normalise = (s) => ({
   renewable: !!s.renewable,
 });
 
-/** Whole-subscription amounts from its lines. Discounts are applied on the invoice, not here. */
-function totalsOf(lines) {
+/**
+ * Whole-subscription amounts: the lines plus the plan's price for the period.
+ * `untaxed` and `tax` come from the lines; the plan price is added without tax.
+ * Discounts are applied on the invoice, not here.
+ */
+function totalsOf(lines, planPrice) {
   const sum = lines.reduce(
     (t, l) => {
       const r = priceLine({ unitPrice: l.unit_price, quantity: l.quantity, taxRates: l.taxes.map((x) => x.rate) });
@@ -126,7 +131,12 @@ function totalsOf(lines) {
     },
     { untaxed: 0, tax: 0, total: 0 }
   );
-  return { untaxed: round2(sum.untaxed), tax: round2(sum.tax), total: round2(sum.total) };
+  return {
+    plan_price: planPrice,
+    untaxed: round2(sum.untaxed),
+    tax: round2(sum.tax),
+    total: round2(sum.total + planPrice),
+  };
 }
 
 async function linesFor(ids) {
@@ -179,7 +189,7 @@ export async function loadSubscription(id, user) {
   if (!row || hiddenFrom(user, row)) throw new HttpError(404, 'Subscription not found.');
   const sub = normalise(row);
   const lines = (await linesFor([sub.id])).get(sub.id);
-  return { ...sub, lines, totals: totalsOf(lines), actions: availableActions(sub, user.role) };
+  return { ...sub, lines, totals: totalsOf(lines, sub.plan_price), actions: availableActions(sub, user.role) };
 }
 
 export async function listSubscriptions({ user, status, page, pageSize }) {
@@ -199,7 +209,10 @@ export async function listSubscriptions({ user, status, page, pageSize }) {
   const offset = (Number(page) - 1) * limit;
   const rows = await query(`SELECT ${SUB_COLUMNS} ${FROM} ${clause} ORDER BY s.id DESC LIMIT ${limit} OFFSET ${offset}`, params);
   const lines = await linesFor(rows.map((r) => r.id));
-  const subscriptions = rows.map((r) => ({ ...normalise(r), totals: totalsOf(lines.get(r.id)) }));
+  const subscriptions = rows.map((r) => {
+    const sub = normalise(r);
+    return { ...sub, totals: totalsOf(lines.get(r.id), sub.plan_price) };
+  });
   return { subscriptions, total: Number(total), page: Number(page), pageSize: limit };
 }
 

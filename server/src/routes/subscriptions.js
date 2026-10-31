@@ -57,10 +57,10 @@ router.post('/from-template', requireRole('customer'), async (req, res) => {
 
   const id = await withTransaction(async (conn) => {
     const [result] = await conn.execute(
-      `INSERT INTO subscriptions (customer_id, plan_id, template_id, status, start_date, expiry_date, payment_terms,
-                                  validity_days, quote_valid_until, created_by)
-       VALUES (?, ?, ?, 'quotation', ?, ?, 'immediate', ?, ?, ?)`,
-      [req.user.id, plan.id, template.id, now, plan.end_date, template.validity_days, addDays(now, template.validity_days), req.user.id]
+      `INSERT INTO subscriptions (customer_id, plan_id, plan_price, template_id, status, start_date, expiry_date,
+                                  payment_terms, validity_days, quote_valid_until, created_by)
+       VALUES (?, ?, ?, ?, 'quotation', ?, ?, 'immediate', ?, ?, ?)`,
+      [req.user.id, plan.id, plan.price, template.id, now, plan.end_date, template.validity_days, addDays(now, template.validity_days), req.user.id]
     );
     await insertLines(conn, result.insertId, lines);
     await assignNumber(conn, result.insertId);
@@ -79,17 +79,17 @@ async function validated(body) {
     const [template] = await query('SELECT id FROM quotation_templates WHERE id = ?', [data.template_id]);
     if (!template) data.template_id = null;
   }
-  return { data, lines: await resolveLines(data.lines, plan) };
+  return { data, plan, lines: await resolveLines(data.lines, plan) };
 }
 
 router.post('/', team, async (req, res) => {
-  const { data, lines } = await validated(req.body);
+  const { data, plan, lines } = await validated(req.body);
   const id = await withTransaction(async (conn) => {
     const [result] = await conn.execute(
-      `INSERT INTO subscriptions (customer_id, plan_id, template_id, status, start_date, expiry_date, payment_terms,
-                                  validity_days, created_by)
-       VALUES (?, ?, ?, 'draft', ?, ?, ?, ?, ?)`,
-      [data.customer_id, data.plan_id, data.template_id, data.start_date, data.expiry_date, data.payment_terms, data.validity_days, req.user.id]
+      `INSERT INTO subscriptions (customer_id, plan_id, plan_price, template_id, status, start_date, expiry_date,
+                                  payment_terms, validity_days, created_by)
+       VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)`,
+      [data.customer_id, data.plan_id, plan.price, data.template_id, data.start_date, data.expiry_date, data.payment_terms, data.validity_days, req.user.id]
     );
     await insertLines(conn, result.insertId, lines);
     await assignNumber(conn, result.insertId);
@@ -107,12 +107,12 @@ router.put('/:id', team, async (req, res) => {
   if (!['draft', 'quotation'].includes(existing.status)) {
     throw new HttpError(409, 'Only drafts and quotations can be edited.');
   }
-  const { data, lines } = await validated(req.body);
+  const { data, plan, lines } = await validated(req.body);
   await withTransaction(async (conn) => {
     await conn.execute(
-      `UPDATE subscriptions SET customer_id = ?, plan_id = ?, template_id = ?, start_date = ?, expiry_date = ?,
-              payment_terms = ?, validity_days = ? WHERE id = ?`,
-      [data.customer_id, data.plan_id, data.template_id, data.start_date, data.expiry_date, data.payment_terms, data.validity_days, existing.id]
+      `UPDATE subscriptions SET customer_id = ?, plan_id = ?, plan_price = ?, template_id = ?, start_date = ?,
+              expiry_date = ?, payment_terms = ?, validity_days = ? WHERE id = ?`,
+      [data.customer_id, data.plan_id, plan.price, data.template_id, data.start_date, data.expiry_date, data.payment_terms, data.validity_days, existing.id]
     );
     await conn.execute('DELETE FROM subscription_lines WHERE subscription_id = ?', [existing.id]);
     await insertLines(conn, existing.id, lines);

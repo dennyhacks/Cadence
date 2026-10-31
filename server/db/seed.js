@@ -116,10 +116,11 @@ async function seedSubscriptions() {
 
   for (const [email, planName, status, paused, start, expiry, terms, quoteUntil, lines] of demoSubscriptions) {
     const [customer] = await query('SELECT id FROM users WHERE email = ?', [email]);
+    const [plan] = await query('SELECT id, price FROM plans WHERE name = ?', [planName]);
     const result = await query(
-      `INSERT INTO subscriptions (customer_id, plan_id, status, is_paused, start_date, expiry_date, payment_terms, quote_valid_until)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [customer.id, await idOf('plans', planName), status, paused, start, expiry, terms, quoteUntil]
+      `INSERT INTO subscriptions (customer_id, plan_id, plan_price, status, is_paused, start_date, expiry_date, payment_terms, quote_valid_until)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [customer.id, plan.id, plan.price, status, paused, start, expiry, terms, quoteUntil]
     );
     await query("UPDATE subscriptions SET number = CONCAT('SUB-', LPAD(id, 5, '0')) WHERE id = ?", [result.insertId]);
     for (const [product, variant, qty, taxes] of lines) {
