@@ -118,3 +118,33 @@
     linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
 }
+
+/* Landing page: a soft lime glow behind the hero, and cards that drift gently like notifications. */
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 45% at 50% 0%, rgb(216 253 52 / 0.16), transparent 70%);
+}
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.float-slow {
+  animation: drift 6s ease-in-out infinite;
+}
+.float-slower {
+  animation: drift 8s ease-in-out infinite reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-slow,
+  .float-slower {
+    animation: none;
+  }
+}

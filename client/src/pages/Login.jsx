@@ -6,14 +6,6 @@ import { Field, PasswordField } from '../components/Field.jsx';
 import { Button, ErrorAlert, Notice, linkClass } from '../components/ui.jsx';
 import { compact, validateEmail } from '../validation.js';
 
-// Demo accounts are created by `npm run db:setup`. They show up in development only.
-const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_LOGINS === 'true';
-const DEMO_ACCOUNTS = [
-  { label: 'Admin', email: 'admin@cadence.test', password: 'Admin@12345' },
-  { label: 'Staff', email: 'staff@cadence.test', password: 'Staff@12345' },
-  { label: 'Customer', email: 'customer@cadence.test', password: 'Customer@12345' },
-];
-
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -95,28 +87,6 @@ export default function Login() {
           Sign in
         </Button>
       </form>
-
-      {SHOW_DEMO && (
-        <div className="mt-8 border-t border-line pt-5">
-          <p className="text-sm text-muted">Demo accounts: pick one to fill the form.</p>
-          <div className="mt-2.5 flex flex-wrap gap-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.label}
-                type="button"
-                onClick={() => {
-                  setForm({ email: account.email, password: account.password });
-                  setErrors({});
-                  setFormError('');
-                }}
-                className="rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-medium hover:border-leaf-600 hover:text-leaf-700"
-              >
-                {account.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </AuthLayout>
   );
 }
