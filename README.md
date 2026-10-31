@@ -79,6 +79,8 @@ Customers sign up on their own and can keep their company, phone and billing add
 
 **Paying online.** A customer opens a confirmed invoice (or presses **Pay now** in their list) and pays by card. This runs in **test mode**: only the published test cards work (4242 4242 4242 4242 approves, 4000 0000 0000 0002 is declined), no money moves, and the card number is never stored, only its last four digits in the payment note.
 
+**Razorpay.** When `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` are set (use the test-mode keys), the pay box opens Razorpay Checkout for card, UPI or net banking instead of the test-card form. The server creates the order for the amount still owed, then checks Razorpay's signature and reads the amount from Razorpay's own order before recording the payment, so a browser cannot claim a payment or change the amount. Each Razorpay payment id is recorded once. The secret key stays on the server.
+
 **Reminders.** On an overdue invoice the team can press **Send reminder**, which emails the customer a link to view and pay it and records when the last reminder went out. The hourly job also sends one by itself, at most once a week per overdue invoice (addresses ending in `.test` are skipped, since they can never be delivered).
 
 **Search.** The team gets a search box in the top bar. It finds subscriptions, invoices, products and plans, and a customer's name or email finds their subscriptions and invoices.

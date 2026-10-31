@@ -316,3 +316,21 @@ export const onlinePaymentSchema = z.object({
     .max(99_999_999.99, 'The amount is too large.')
     .optional(),
 });
+
+// ---- Razorpay ----
+
+export const razorpayOrderSchema = z.object({
+  amount: z
+    .number({ error: 'Enter the amount as a number.' })
+    .gt(0, 'The amount must be more than 0.')
+    .max(99_999_999.99, 'The amount is too large.')
+    .optional(),
+});
+
+const razorpayId = (label) => z.string({ error: `${label} is missing.` }).trim().min(1, `${label} is missing.`).max(100, `${label} is not valid.`);
+
+export const razorpayVerifySchema = z.object({
+  razorpay_order_id: razorpayId('The order id'),
+  razorpay_payment_id: razorpayId('The payment id'),
+  razorpay_signature: razorpayId('The signature'),
+});

@@ -6,6 +6,7 @@ import { computeInvoice, TERMS_DAYS } from '../utils/invoicing.js';
 import { sendInvoiceEmail, sendReminderEmail } from '../utils/mailer.js';
 import { expiryInFuture, luhn, TEST_CARDS } from '../utils/cards.js';
 import { toCsv } from '../utils/csv.js';
+import { razorpayApi, razorpayEnabled, signatureValid } from '../utils/razorpay.js';
 import { addDays, linesFor, periodStart } from './subscriptions.js';
 
 const day = (col) => `DATE_FORMAT(${col}, '%Y-%m-%d')`;
@@ -218,6 +219,7 @@ export async function loadInvoice(id, user) {
     actions: invoiceActions(inv, user.role),
     can_record_payment: user.role !== 'customer' && inv.status === 'confirmed' && inv.outstanding > 0,
     can_pay_online: inv.status === 'confirmed' && inv.outstanding > 0,
+    razorpay_enabled: razorpayEnabled(),
   };
 }
 
@@ -380,6 +382,65 @@ export async function payOnline(id, input, user) {
   return recordPayment(
     id,
     { method: 'card', amount, paid_on: today(), note: `Online payment (test mode), card ending ${input.card_number.slice(-4)}` },
+    user
+  );
+}
+
+// ---- Paying with Razorpay ----
+
+const toPaise = (rupees) => Math.round(rupees * 100);
+const RAZORPAY_METHOD = { card: 'card', upi: 'upi', netbanking: 'bank_transfer' };
+
+function needRazorpay() {
+  if (!razorpayEnabled()) throw new HttpError(503, 'Razorpay is not set up on this server. Pay by card instead.');
+}
+
+/** Step 1: creates a Razorpay order for what the customer chose to pay now (the full amount owed by default). */
+export async function createRazorpayOrder(id, input, user) {
+  needRazorpay();
+  const inv = await loadInvoice(id, user);
+  if (!inv.can_pay_online) throw new HttpError(409, inv.status === 'paid' ? 'This invoice is already paid.' : 'This invoice cannot be paid right now.');
+  const amount = input.amount ?? inv.outstanding;
+  if (toPaise(amount) > toPaise(inv.outstanding)) {
+    throw cardError('amount', `The most you can pay is ${inv.outstanding.toFixed(2)}, which is what is still owed.`);
+  }
+  const order = await razorpayApi.createOrder({
+    amount: toPaise(amount),
+    currency: 'INR',
+    receipt: inv.number,
+    notes: { invoice_id: String(inv.id), user_id: String(user.id) },
+  });
+  return { key_id: config.razorpay.keyId, order_id: order.id, amount: order.amount, currency: order.currency, invoice_number: inv.number };
+}
+
+/**
+ * Step 2: after Razorpay Checkout succeeds, the browser sends back the ids and signature. The signature proves the
+ * payment came from Razorpay, and the amount comes from Razorpay's own order, never from the browser. A payment id
+ * can only be recorded once, so repeating this call is safe.
+ */
+export async function verifyRazorpayPayment(id, input, user) {
+  needRazorpay();
+  await loadInvoice(id, user); // 404 when it is not this customer's invoice
+  if (!signatureValid(input.razorpay_order_id, input.razorpay_payment_id, input.razorpay_signature)) {
+    throw new HttpError(400, 'The payment could not be verified, so nothing was recorded. If money left your account, contact Brightloop Software.');
+  }
+
+  const order = await razorpayApi.fetchOrder(input.razorpay_order_id);
+  if (order.notes?.invoice_id !== String(Number(id)) || order.notes?.user_id !== String(user.id)) {
+    throw new HttpError(400, 'This payment belongs to a different invoice, so nothing was recorded.');
+  }
+  const payment = await razorpayApi.fetchPayment(input.razorpay_payment_id);
+  if (payment.order_id !== order.id || !['captured', 'authorized'].includes(payment.status)) {
+    throw new HttpError(402, 'Razorpay has not confirmed this payment yet, so nothing was recorded.');
+  }
+
+  const marker = `Razorpay ${input.razorpay_payment_id}`;
+  const [already] = await query('SELECT id FROM payments WHERE note LIKE ? LIMIT 1', [`${marker}%`]);
+  if (already) return loadInvoice(id, user);
+
+  return recordPayment(
+    id,
+    { method: RAZORPAY_METHOD[payment.method] ?? 'card', amount: order.amount / 100, paid_on: today(), note: `${marker} (order ${order.id})` },
     user
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ApiError } from '../api.js';
+import { useAuth } from '../auth/AuthContext.jsx';
 import { ErrorAlert, Notice } from '../components/ui.jsx';
 import { Field, Select, Textarea } from '../components/Field.jsx';
 import DeleteButton from '../components/DeleteButton.jsx';
@@ -111,6 +112,85 @@ function PayOnline({ invoice, onPaid }) {
       <Field id="pay_amount" label="Amount to pay" type="number" inputMode="decimal" min="0" step="0.01" value={values.amount} onChange={set('amount')} error={errors.amount} hint={`The full amount owed is ${formatMoney(invoice.outstanding)}. You can pay less now and the rest later.`} />
       <button type="submit" disabled={paying} className="rounded-full bg-leaf-600 px-5 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
         {paying ? 'Paying…' : `Pay ${formatMoney(toNumber(values.amount) || 0)}`}
+      </button>
+    </form>
+  );
+}
+
+function loadCheckout() {
+  if (window.Razorpay) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Razorpay could not be loaded. Check your connection and try again.'));
+    document.head.appendChild(script);
+  });
+}
+
+function PayWithRazorpay({ invoice, onPaid }) {
+  const { user } = useAuth();
+  const [amount, setAmount] = useState(String(invoice.outstanding));
+  const [error, setError] = useState('');
+  const [fieldError, setFieldError] = useState('');
+  const [paying, setPaying] = useState(false);
+  const panel = useRef(null);
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash === '#pay') panel.current?.scrollIntoView({ block: 'start' });
+  }, [hash]);
+
+  async function pay(e) {
+    e.preventDefault();
+    setError('');
+    setFieldError('');
+    const value = toNumber(amount);
+    if (!value || value <= 0) return setFieldError('Enter an amount more than 0.');
+    if (value > invoice.outstanding) return setFieldError(`The most you can pay is ${formatMoney(invoice.outstanding)}.`);
+
+    setPaying(true);
+    try {
+      const [order] = await Promise.all([api.post(`/invoices/${invoice.id}/razorpay/order`, { amount: value }), loadCheckout()]);
+      const checkout = new window.Razorpay({
+        key: order.key_id,
+        order_id: order.order_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Brightloop Software',
+        description: `Invoice ${order.invoice_number}`,
+        prefill: { name: user.name, email: user.email },
+        theme: { color: '#d8fd34' },
+        handler: async (response) => {
+          try {
+            const d = await api.post(`/invoices/${invoice.id}/razorpay/verify`, response);
+            onPaid(d.invoice);
+          } catch (err) {
+            setError(err.message);
+            setPaying(false);
+          }
+        },
+        modal: { ondismiss: () => setPaying(false) },
+      });
+      checkout.on('payment.failed', (r) => {
+        setError(r.error?.description || 'The payment failed. Try again.');
+        setPaying(false);
+      });
+      checkout.open();
+    } catch (err) {
+      setError(err.message);
+      setPaying(false);
+    }
+  }
+
+  return (
+    <form id="pay" ref={panel} onSubmit={pay} noValidate className="mt-8 max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-5 print:hidden">
+      <h2 className="font-display text-xl font-semibold">Pay this invoice</h2>
+      <Notice>You pay on Razorpay's secure page with a card, UPI or net banking. Cadence never sees your card details.</Notice>
+      <ErrorAlert>{error}</ErrorAlert>
+      <Field id="pay_amount" label="Amount to pay" type="number" inputMode="decimal" min="0" step="0.01" value={amount} onChange={(e) => { setAmount(e.target.value); setFieldError(''); }} error={fieldError} hint={`The full amount owed is ${formatMoney(invoice.outstanding)}. You can pay less now and the rest later.`} />
+      <button type="submit" disabled={paying} className="rounded-full bg-leaf-600 px-5 py-2.5 font-semibold text-black hover:bg-leaf-700 disabled:opacity-70">
+        {paying ? 'Waiting for Razorpay…' : `Pay ${formatMoney(toNumber(amount) || 0)} with Razorpay`}
       </button>
     </form>
   );
@@ -280,7 +360,7 @@ export default function InvoiceDetail() {
         {inv.status === 'paid' && <p className="mt-6 font-display text-lg font-semibold text-leaf-700">Paid in full. Thank you.</p>}
       </article>
 
-      {inv.can_pay_online && !team && <PayOnline key={inv.amount_paid} invoice={inv} onPaid={setInv} />}
+      {inv.can_pay_online && !team && (inv.razorpay_enabled ? <PayWithRazorpay key={inv.amount_paid} invoice={inv} onPaid={setInv} /> : <PayOnline key={inv.amount_paid} invoice={inv} onPaid={setInv} />)}
       {inv.can_record_payment && <PaymentForm key={inv.amount_paid} invoice={inv} onSaved={setInv} />}
     </>
   );

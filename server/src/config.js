@@ -43,6 +43,8 @@ export const config = {
   resetMinutes: 60,
   // A job runner such as Vercel Cron calls /api/cron/billing with this secret.
   cronSecret: env.CRON_SECRET || '',
+  // Razorpay Checkout. Without both keys the card form in test mode is used instead.
+  razorpay: { keyId: env.RAZORPAY_KEY_ID || '', keySecret: env.RAZORPAY_KEY_SECRET || '' },
   db: {
     host: url.host ?? (env.DB_HOST || '127.0.0.1'),
     port: url.port ?? (Number(env.DB_PORT) || 3306),

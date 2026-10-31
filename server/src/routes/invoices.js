@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { HttpError } from '../utils/errors.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { invoiceActionSchema, onlinePaymentSchema, parse, paymentSchema } from '../validation/schemas.js';
+import { invoiceActionSchema, onlinePaymentSchema, parse, paymentSchema, razorpayOrderSchema, razorpayVerifySchema } from '../validation/schemas.js';
 import {
-  exportInvoicesCsv, generateDueInvoices, isInvoiceFilter, listInvoices, loadInvoice, payOnline, recordPayment, runInvoiceAction,
+  createRazorpayOrder, exportInvoicesCsv, generateDueInvoices, isInvoiceFilter, listInvoices, loadInvoice, payOnline, recordPayment, runInvoiceAction, verifyRazorpayPayment,
 } from '../services/billing.js';
 import { closeExpiredSubscriptions } from '../services/subscriptions.js';
 
@@ -53,6 +53,17 @@ router.post('/:id/action', team, async (req, res) => {
 router.post('/:id/pay', async (req, res) => {
   const input = parse(onlinePaymentSchema, req.body);
   res.status(201).json({ invoice: await payOnline(req.params.id, input, req.user) });
+});
+
+// Paying with Razorpay: create an order, then verify what Checkout sends back.
+router.post('/:id/razorpay/order', async (req, res) => {
+  const input = parse(razorpayOrderSchema, req.body ?? {});
+  res.status(201).json(await createRazorpayOrder(req.params.id, input, req.user));
+});
+
+router.post('/:id/razorpay/verify', async (req, res) => {
+  const input = parse(razorpayVerifySchema, req.body);
+  res.status(201).json({ invoice: await verifyRazorpayPayment(req.params.id, input, req.user) });
 });
 
 router.post('/:id/payments', team, async (req, res) => {
