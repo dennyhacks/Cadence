@@ -43,6 +43,10 @@ Two more customers, `kite@cadence.test` and `orbit@cadence.test`, both use `Cust
 
 The demo data is only for trying things out. It has products with variants, plans, taxes, discounts in every state, quotation templates, subscriptions in every status, and nine invoices that are paid, part paid, overdue or still draft.
 
+## Put it online
+
+`DEPLOY.md` explains how to host it on Vercel with a hosted MySQL database.
+
 ## What each role can do
 
 | | Admin | Staff | Customer |

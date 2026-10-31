@@ -1,9 +1,27 @@
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 
-dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)), quiet: true });
+// ENV_FILE lets a command use another settings file, for example the hosted database:
+//   ENV_FILE=.env.remote npm run db:setup
+const envFile = process.env.ENV_FILE ?? '.env';
+dotenv.config({ path: fileURLToPath(new URL(`../${envFile}`, import.meta.url)), quiet: true });
 
 const env = process.env;
+
+/** Hosting services usually give one connection URL: mysql://user:password@host:port/database */
+function fromUrl(value) {
+  if (!value) return {};
+  const u = new URL(value);
+  return {
+    host: u.hostname,
+    port: Number(u.port) || 3306,
+    user: decodeURIComponent(u.username),
+    password: decodeURIComponent(u.password),
+    database: decodeURIComponent(u.pathname.replace(/^\//, '')),
+  };
+}
+const url = fromUrl(env.DATABASE_URL);
+const onVercel = Boolean(env.VERCEL);
 const isProd = env.NODE_ENV === 'production';
 const DEFAULT_SECRET = 'dev-only-secret-change-me';
 
@@ -20,13 +38,20 @@ export const config = {
   bcryptRounds: Number(env.BCRYPT_ROUNDS) || 12,
   sessionDays: 7,
   resetMinutes: 60,
+  // A job runner such as Vercel Cron calls /api/cron/billing with this secret.
+  cronSecret: env.CRON_SECRET || '',
   db: {
-    host: env.DB_HOST || '127.0.0.1',
-    port: Number(env.DB_PORT) || 3306,
-    user: env.DB_USER || 'root',
-    password: env.DB_PASSWORD || '',
-    database: env.DB_NAME || 'cadence',
+    host: url.host ?? (env.DB_HOST || '127.0.0.1'),
+    port: url.port ?? (Number(env.DB_PORT) || 3306),
+    user: url.user ?? (env.DB_USER || 'root'),
+    password: url.password ?? (env.DB_PASSWORD || ''),
+    database: url.database ?? (env.DB_NAME || 'cadence'),
   },
+  // Hosted databases need an encrypted connection. A serverless function keeps its pool small,
+  // because many copies of it can run at once.
+  dbSsl: env.DB_SSL === 'true',
+  dbSslOptions: { minVersion: 'TLSv1.2', rejectUnauthorized: true },
+  dbPoolSize: Number(env.DB_POOL) || (onVercel ? 3 : 10),
   smtp: {
     host: env.SMTP_HOST || '',
     port: Number(env.SMTP_PORT) || 587,
