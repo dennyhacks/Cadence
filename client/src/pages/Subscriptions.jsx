@@ -125,10 +125,10 @@ export default function Subscriptions() {
                 <tr>
                   <th scope="col" className="px-4 py-2.5 font-medium">Number</th>
                   {!mine && <th scope="col" className="px-4 py-2.5 font-medium">Customer</th>}
-                  <th scope="col" className="px-4 py-2.5 font-medium">Plan</th>
+                  <th scope="col" className="hidden px-4 py-2.5 font-medium sm:table-cell">Plan</th>
                   <th scope="col" className="px-4 py-2.5 font-medium">Status</th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">Starts</th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">Expires</th>
+                  <th scope="col" className="hidden px-4 py-2.5 font-medium sm:table-cell">Starts</th>
+                  <th scope="col" className="hidden px-4 py-2.5 font-medium sm:table-cell">Expires</th>
                   <th scope="col" className="px-4 py-2.5 text-right font-medium">Total</th>
                 </tr>
               </thead>
@@ -139,10 +139,10 @@ export default function Subscriptions() {
                       <Link to={`/subscriptions/${s.id}`} className="text-leaf-700 underline-offset-2 hover:underline">{s.number}</Link>
                     </td>
                     {!mine && <td className="px-4 py-3">{s.customer_name}</td>}
-                    <td className="px-4 py-3">{s.plan_name}</td>
+                    <td className="hidden px-4 py-3 sm:table-cell">{s.plan_name}</td>
                     <td className="px-4 py-3"><StatusBadge status={s.status} paused={s.is_paused} /></td>
-                    <td className="whitespace-nowrap px-4 py-3">{formatDay(s.start_date)}</td>
-                    <td className="whitespace-nowrap px-4 py-3">{s.expiry_date ? formatDay(s.expiry_date) : 'No expiry'}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">{formatDay(s.start_date)}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">{s.expiry_date ? formatDay(s.expiry_date) : 'No expiry'}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-right">{formatMoney(s.totals.total)}</td>
                   </tr>
                 ))}
