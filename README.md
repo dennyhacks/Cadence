@@ -22,7 +22,7 @@ npm run db:setup
 npm run dev
 ```
 
-Open http://localhost:5173.
+Open http://localhost:5173. Visitors who are not signed in land on a front page that explains the product, with buttons to sign in or create an account.
 
 | Command | What it does |
 | --- | --- |
@@ -39,7 +39,7 @@ Open http://localhost:5173.
 | Staff | `staff@cadence.test` | `Staff@12345` |
 | Customer | `customer@cadence.test` | `Customer@12345` |
 
-Two more customers, `kite@cadence.test` and `orbit@cadence.test`, both use `Customer@12345`. The sign-in page has buttons that fill in the first three.
+Two more customers, `kite@cadence.test` and `orbit@cadence.test`, both use `Customer@12345`. Type them on the sign-in page.
 
 The demo data is only for trying things out. It has products with variants, plans, taxes, discounts in every state, quotation templates, subscriptions in every status, and nine invoices that are paid, part paid, overdue or still draft.
 

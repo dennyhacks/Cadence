@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { GuestRoute, ProtectedRoute } from './auth/routes.jsx';
 import { useAuth } from './auth/AuthContext.jsx';
 import AppShell from './layout/AppShell.jsx';
+import Welcome from './pages/Welcome.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
@@ -37,6 +38,8 @@ function Landing() {
 export default function App() {
   return (
     <Routes>
+      <Route path="/welcome" element={<Welcome />} />
+
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

@@ -16,7 +16,11 @@ export function ProtectedRoute({ roles }) {
   const location = useLocation();
 
   if (loading) return <Splash />;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  // Someone who is not signed in and opens the site address sees the welcome page; any other page asks them to sign in.
+  if (!user) {
+    if (location.pathname === '/') return <Navigate to="/welcome" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
   return <Outlet />;
 }
