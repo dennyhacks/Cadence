@@ -111,11 +111,10 @@ function ProductPreview() {
   );
 }
 
-function Section({ id, tag, title, children, className = '' }) {
+function Section({ id, title, children, className = '' }) {
   return (
     <section id={id} data-reveal className={`mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 ${className}`}>
-      <span className="inline-flex rounded-full border border-white/20 px-3.5 py-1 text-sm text-pine-200">{tag}</span>
-      <h2 className="mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">{title}</h2>
+      <h2 className="max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">{title}</h2>
       {children}
     </section>
   );
@@ -163,10 +162,7 @@ export default function Welcome() {
         {/* Hero */}
         <div className="grid-bg hero-glow relative">
           <div className="mx-auto max-w-6xl px-5 pb-24 pt-32 text-center sm:px-8 sm:pb-32 sm:pt-44">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-sm text-pine-200">
-              Subscription billing for Brightloop Software
-            </span>
-            <h1 className="mx-auto mt-7 max-w-4xl font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="mx-auto max-w-4xl font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
               Recurring revenue that runs <span className="text-leaf-600">itself.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-pine-200 sm:text-xl">
@@ -190,7 +186,7 @@ export default function Welcome() {
         </div>
 
         {/* The problem */}
-        <Section id="problem" tag="The problem" title="This is a billing month at most companies today.">
+        <Section id="problem" title="This is a billing month at most companies today.">
           <ul className="mt-12 grid gap-4 sm:grid-cols-2">
             {PROBLEMS.map(([title, text], i) => (
               <li key={title} className="rounded-3xl border border-line bg-surface p-6">
@@ -206,14 +202,14 @@ export default function Welcome() {
         </Section>
 
         {/* The tour */}
-        <Section id="tour" tag="See it in action" title="Click through the product.">
+        <Section id="tour" title="Click through the product.">
           <p className="mt-4 max-w-2xl text-lg text-pine-200">Five screens that cover the whole life of a subscription. Pick one, or let it play.</p>
           <ModuleTour />
         </Section>
 
         {/* How it works */}
         <div className="border-y border-line bg-surface/60">
-          <Section id="how" tag="How it works" title="From first setup to the finance report, in four steps.">
+          <Section id="how" title="From first setup to the finance report, in four steps.">
             <ol className="mt-12 grid gap-4 md:grid-cols-4">
               {STEPS.map(([title, text], i) => (
                 <li key={title} className="relative rounded-3xl border border-line bg-paper p-6">
@@ -227,7 +223,7 @@ export default function Welcome() {
         </div>
 
         {/* Features */}
-        <Section id="features" tag="What is inside" title="Everything a subscription business runs on.">
+        <Section id="features" title="Everything a subscription business runs on.">
           <ul ref={spotlight} className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(([icon, title, text]) => (
               <li key={title} className="spotlight group rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-leaf-600/60">
@@ -255,7 +251,7 @@ export default function Welcome() {
         </div>
 
         {/* Roles */}
-        <Section id="roles" tag="Who it is for" title="Everyone sees what they need, and nothing more.">
+        <Section id="roles" title="Everyone sees what they need, and nothing more.">
           <ul className="mt-12 grid gap-4 md:grid-cols-3">
             {ROLES.map(([role, text]) => (
               <li key={role} className="rounded-3xl border border-line bg-surface p-7">
