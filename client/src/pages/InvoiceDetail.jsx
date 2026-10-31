@@ -130,7 +130,11 @@ export default function InvoiceDetail() {
         </header>
 
         <dl className="grid gap-x-8 gap-y-4 py-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div><dt className="text-sm text-muted">Billed to</dt><dd className="mt-0.5 font-medium">{inv.customer_name}<span className="block text-sm font-normal text-muted">{inv.customer_email}</span></dd></div>
+          <div><dt className="text-sm text-muted">Billed to</dt><dd className="mt-0.5 font-medium">{inv.customer_company || inv.customer_name}
+            {inv.customer_company && <span className="block text-sm font-normal">{inv.customer_name}</span>}
+            <span className="block text-sm font-normal text-muted">{inv.customer_email}</span>
+            {inv.customer_phone && <span className="block text-sm font-normal text-muted">{inv.customer_phone}</span>}
+            {inv.customer_address && <span className="block whitespace-pre-line text-sm font-normal text-muted">{inv.customer_address}</span>}</dd></div>
           <div><dt className="text-sm text-muted">Subscription</dt><dd className="mt-0.5 font-medium">{inv.subscription_number}<span className="block text-sm font-normal text-muted">{inv.plan_name}</span></dd></div>
           <div><dt className="text-sm text-muted">Billing period</dt><dd className="mt-0.5 font-medium">{formatDay(inv.period_start)} to {formatDay(inv.period_end)}</dd></div>
           <div><dt className="text-sm text-muted">Invoice date</dt><dd className="mt-0.5 font-medium">{formatDay(inv.invoice_date)}<span className="block text-sm font-normal text-muted">Due {formatDay(inv.due_date)}</span></dd></div>

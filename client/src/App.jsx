@@ -24,6 +24,7 @@ import SubscriptionForm from './pages/SubscriptionForm.jsx';
 import Invoices from './pages/Invoices.jsx';
 import InvoiceDetail from './pages/InvoiceDetail.jsx';
 import Payments from './pages/Payments.jsx';
+import Profile from './pages/Profile.jsx';
 
 const TEAM = ['admin', 'staff'];
 
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/invoices/:id" element={<InvoiceDetail />} />
 

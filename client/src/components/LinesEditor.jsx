@@ -3,7 +3,10 @@ import { inputClass } from './Field.jsx';
 import { formatMoney } from '../format.js';
 import { linePreview } from '../pricing.js';
 
-export const emptyLine = () => ({ product_id: '', variant: '', quantity: '1', tax_ids: [] });
+export const emptyLine = (taxIds = []) => ({ product_id: '', variant: '', quantity: '1', tax_ids: taxIds });
+
+/** Taxes the admin marked "apply automatically" start ticked on every new line. */
+export const automaticTaxIds = (taxes) => taxes.filter((t) => t.apply_automatically).map((t) => t.id);
 
 /** Variants are chosen as "Attribute: Value" strings so one select can hold them. */
 export const variantKey = (v) => (v ? `${v.attribute}: ${v.value}` : '');
@@ -87,7 +90,7 @@ export default function LinesEditor({ lines, onChange, products, taxes, error })
                   <Checkbox
                     key={t.id}
                     id={`line-${i}-tax-${t.id}`}
-                    label={`${t.name} (${t.rate}%)`}
+                    label={`${t.name} (${t.rate}%)${t.apply_automatically ? ', automatic' : ''}`}
                     checked={line.tax_ids.includes(t.id)}
                     onChange={(e) =>
                       update(i, { tax_ids: e.target.checked ? [...line.tax_ids, t.id] : line.tax_ids.filter((x) => x !== t.id) })
@@ -105,10 +108,13 @@ export default function LinesEditor({ lines, onChange, products, taxes, error })
           </div>
         );
       })}
+      {taxes.some((t) => t.apply_automatically) && (
+        <p className="mb-3 text-sm text-muted">Taxes marked automatic are ticked on every new line. Untick one only when a line should leave it out.</p>
+      )}
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
       <button
         type="button"
-        onClick={() => onChange([...lines, emptyLine()])}
+        onClick={() => onChange([...lines, emptyLine(automaticTaxIds(taxes))])}
         className="rounded-lg border border-line px-4 py-2 font-medium hover:bg-paper"
       >
         Add line

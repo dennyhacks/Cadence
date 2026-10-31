@@ -21,6 +21,7 @@ import invoiceRoutes from './routes/invoices.js';
 import paymentRoutes from './routes/payments.js';
 import dashboardRoutes from './routes/dashboard.js';
 import cronRoutes from './routes/cron.js';
+import profileRoutes from './routes/profile.js';
 
 export function createApp() {
   const app = express();
@@ -46,6 +47,7 @@ export function createApp() {
   app.use('/api/payments', paymentRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/cron', cronRoutes);
+  app.use('/api/profile', profileRoutes);
   app.use('/api', notFound);
 
   // After `npm run build`, the server can serve the built app on its own (one port, no Vite).

@@ -5,7 +5,7 @@ import { Button, ErrorAlert } from '../components/ui.jsx';
 import { Field, Select } from '../components/Field.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import DeleteButton from '../components/DeleteButton.jsx';
-import LinesEditor, { emptyLine, linesFromApi, linesToBody } from '../components/LinesEditor.jsx';
+import LinesEditor, { automaticTaxIds, emptyLine, linesFromApi, linesToBody } from '../components/LinesEditor.jsx';
 import { toNumber } from '../format.js';
 import { useTitle } from '../useTitle.js';
 
@@ -35,6 +35,7 @@ export default function TemplateForm() {
         setPlans(p.plans);
         setProducts(pr.products);
         setTaxes(t.taxes);
+        if (!tpl) setLines([emptyLine(automaticTaxIds(t.taxes))]);
         if (tpl) {
           const x = tpl.template;
           setValues({ name: x.name, plan_id: String(x.plan_id), validity_days: String(x.validity_days) });

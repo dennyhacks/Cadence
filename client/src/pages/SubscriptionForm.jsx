@@ -4,9 +4,9 @@ import { api, ApiError } from '../api.js';
 import { Button, ErrorAlert } from '../components/ui.jsx';
 import { Field, Select } from '../components/Field.jsx';
 import PageHeader from '../components/PageHeader.jsx';
-import LinesEditor, { emptyLine, linesFromApi, linesToBody } from '../components/LinesEditor.jsx';
+import LinesEditor, { automaticTaxIds, emptyLine, linesFromApi, linesToBody } from '../components/LinesEditor.jsx';
 import { TERMS } from './SubscriptionDetail.jsx';
-import { formatMoney, toNumber } from '../format.js';
+import { formatDay, formatMoney, toNumber } from '../format.js';
 import { useTitle } from '../useTitle.js';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -41,6 +41,7 @@ export default function SubscriptionForm() {
         setTemplates(t.templates);
         setProducts(pr.products);
         setTaxes(tx.taxes);
+        if (!sub) setLines([emptyLine(automaticTaxIds(tx.taxes))]);
         if (sub) {
           const s = sub.subscription;
           setValues({
@@ -133,7 +134,7 @@ export default function SubscriptionForm() {
             ))}
           </Select>
           <Field id="start_date" label="Start date" type="date" value={values.start_date} onChange={set('start_date')} error={errors.start_date} />
-          <Field id="expiry_date" label="Expiry date" type="date" value={values.expiry_date} onChange={set('expiry_date')} error={errors.expiry_date} hint="Leave empty if it has no end date." />
+          <Field id="expiry_date" label="Expiry date" type="date" value={values.expiry_date} onChange={set('expiry_date')} error={errors.expiry_date} hint={chosenPlan?.auto_close && chosenPlan.end_date ? `This plan closes on its own on ${formatDay(chosenPlan.end_date)}. Leave empty to end then; it cannot be later.` : 'Leave empty if it has no end date.'} />
           <Select id="payment_terms" label="Payment terms" value={values.payment_terms} onChange={set('payment_terms')} error={errors.payment_terms}>
             {Object.entries(TERMS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>

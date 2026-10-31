@@ -60,15 +60,15 @@ The demo data is only for trying things out. It has products with variants, plan
 | Invoices | all | all | their own, confirmed or paid |
 | Record payments | yes | yes | |
 
-Customers sign up on their own. They can start a subscription from a quotation template, confirm it, and pause, resume, close or renew it when the plan allows.
+Customers sign up on their own and can keep their company, phone and billing address under **My details**. These are copied onto each new invoice as "billed to". They can start a subscription from a quotation template, confirm it, and pause, resume, close or renew it when the plan allows.
 
 ## How it works
 
-**Products and plans.** A product has a name, type, sales price, cost price, notes and variants. A variant adds an amount to the price (Brand: Odoo adds 560). A plan has a price, a billing period (daily, weekly, monthly or yearly), a minimum quantity and the dates it is available. Per plan, the admin decides whether subscriptions close on their own at the end date, can be closed early, paused or renewed.
+**Products and plans.** A product has a name, type, sales price, cost price, notes and variants. A variant adds an amount to the price (Brand: Odoo adds 560). A plan has a price, a billing period (daily, weekly, monthly or yearly), a minimum quantity and the dates it is available. Per plan, the admin decides whether subscriptions close on their own at the end date, can be closed early, paused or renewed. On a plan that closes on its own, a subscription takes the plan's end date as its expiry and cannot outlast it.
 
 **Subscriptions.** Each has its own number, customer, plan, start and expiry dates, payment terms and lines (product, quantity, unit price, taxes, amount). Status moves Draft, Quotation, Confirmed, Active, Closed and is shown to the whole team. The server sets every price, so a client can never send its own. A subscription total is its lines plus the plan price once per period.
 
-**Taxes and discounts.** The admin sets tax rules and they are calculated automatically, on the amount after discount. Discounts (admin only) are a fixed amount or a percentage, with a minimum purchase or quantity, start and end dates and a usage limit. They apply to specific products or to whole subscriptions, show up on the next invoice by themselves, and stop when they expire or run out. Discounts apply to product lines, never the plan price.
+**Taxes and discounts.** The admin sets tax rules and they are calculated automatically, on the amount after discount. A tax marked "apply automatically" is added to every new line, so it cannot be forgotten, and can still be unticked on one line. Discounts (admin only) are a fixed amount or a percentage, with a minimum purchase or quantity, start and end dates and a usage limit. They apply to specific products or to whole subscriptions, show up on the next invoice by themselves, and stop when they expire or run out. Discounts apply to product lines, never the plan price.
 
 **Invoices.** Invoices are created from active subscriptions with customer details, lines, taxes and totals filled in. The team can confirm, cancel, send and print them (Draft, Confirmed, Paid). Nothing is billed twice or skipped:
 

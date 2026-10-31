@@ -52,6 +52,19 @@ const demoDiscounts = [
   ['Festive offer', 'percentage', 12, 1000, null, '2026-11-15', '2026-12-31', 200, 0, 'products', ['Onboarding Kit', 'Priority Support']],
 ];
 
+// Each customer's details appear as "billed to" on their invoices. Safe to run again: it only fills in blanks.
+const demoDetails = [
+  ['customer@cadence.test', 'Northwind Traders Pvt Ltd', '+91 98765 43210', '14 Market Road, Coimbatore, Tamil Nadu 641001'],
+  ['kite@cadence.test', 'Kite Studio LLP', '+91 98450 11223', '22 Lake View Street, Bengaluru, Karnataka 560001'],
+  ['orbit@cadence.test', 'Orbit Labs Technologies', '+91 99400 55667', '8 Tech Park Avenue, Chennai, Tamil Nadu 600096'],
+];
+
+async function seedCustomerDetails() {
+  for (const [email, company, phone, address] of demoDetails) {
+    await query('UPDATE users SET company = ?, phone = ?, billing_address = ? WHERE email = ? AND company IS NULL', [company, phone, address, email]);
+  }
+}
+
 async function seedTaxesAndDiscounts() {
   for (const [name, rate] of demoTaxes) {
     const [existing] = await query('SELECT id FROM taxes WHERE name = ?', [name]);
@@ -59,6 +72,8 @@ async function seedTaxesAndDiscounts() {
     await query('INSERT INTO taxes (name, rate) VALUES (?, ?)', [name, rate]);
     console.log(`Created  tax      ${name}`);
   }
+  // GST 18% is the standard rate, so it goes on every new line unless someone unticks it.
+  await query("UPDATE taxes SET apply_automatically = 1 WHERE name = 'GST 18%'");
   for (const [name, type, value, minPurchase, minQty, start, end, limit, used, appliesTo, products] of demoDiscounts) {
     const [existing] = await query('SELECT id FROM discounts WHERE name = ?', [name]);
     if (existing) continue;
@@ -218,6 +233,7 @@ async function main() {
     ]);
     console.log(`Created  ${user.role.padEnd(8)} ${user.email}  /  ${user.password}`);
   }
+  await seedCustomerDetails();
   await seedCatalog();
   await seedTaxesAndDiscounts();
   await seedSubscriptions();

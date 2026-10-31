@@ -69,12 +69,28 @@ export function checkPlanWindow(plan, startDate) {
 }
 
 /**
+ * A plan that closes on its own cannot be outlived by its subscriptions. With no expiry date a subscription
+ * takes the plan's end date, and an expiry date after the plan's end is refused.
+ */
+export function applyPlanEnd(plan, expiryDate) {
+  if (!plan.auto_close || !plan.end_date) return expiryDate;
+  if (!expiryDate) return plan.end_date;
+  if (expiryDate > plan.end_date) {
+    throw fieldError('expiry_date', `This plan closes on its own on ${plan.end_date}, so a subscription on it cannot expire later.`);
+  }
+  return expiryDate;
+}
+
+/**
  * Checks each line against the catalog and the plan, and works out its price:
  * the product's sales price plus the variant's extra amount.
  */
 export async function resolveLines(lines, plan) {
   const fail = (n, message) => fieldError('lines', `Line ${n}: ${message}`);
   const productIds = [...new Set(lines.map((l) => l.product_id))];
+  // Taxes the admin marked "apply automatically" go on any line that does not say which taxes to use.
+  const automatic = (await query('SELECT id FROM taxes WHERE apply_automatically = 1 ORDER BY id')).map((t) => t.id);
+  lines = lines.map((l) => ({ ...l, tax_ids: l.tax_ids ?? automatic }));
   const taxIds = [...new Set(lines.flatMap((l) => l.tax_ids))];
 
   const products = await query(`SELECT id, name, sales_price FROM products WHERE id IN (${placeholders(productIds)})`, productIds);
@@ -294,13 +310,14 @@ export async function runAction(id, action, user) {
   return loadSubscription(sub.id, user);
 }
 
-/** Closes active subscriptions whose plan closes on its own once they pass their expiry date. */
+/** Closes active subscriptions on a plan that closes on its own, once they pass their expiry date or the plan has ended. */
 export async function closeExpiredSubscriptions(now = new Date()) {
   const result = await query(
     `UPDATE subscriptions s JOIN plans p ON p.id = s.plan_id
         SET s.status = 'closed', s.is_paused = 0
-      WHERE s.status = 'active' AND p.auto_close = 1 AND s.expiry_date IS NOT NULL AND s.expiry_date < ?`,
-    [today(now)]
+      WHERE s.status = 'active' AND p.auto_close = 1
+        AND ((s.expiry_date IS NOT NULL AND s.expiry_date < ?) OR (p.end_date IS NOT NULL AND p.end_date < ?))`,
+    [today(now), today(now)]
   );
   return result.affectedRows;
 }

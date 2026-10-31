@@ -35,6 +35,7 @@ async function candidateDiscounts(onDate) {
 async function loadForBilling(id) {
   const [sub] = await query(
     `SELECT s.id, s.customer_id, s.payment_terms, s.plan_price, c.name AS customer_name, c.email AS customer_email,
+            c.company AS customer_company, c.phone AS customer_phone, c.billing_address AS customer_address,
             p.name AS plan_name, p.billing_period, ${day('s.start_date')} AS start_date
        FROM subscriptions s JOIN users c ON c.id = s.customer_id JOIN plans p ON p.id = s.plan_id WHERE s.id = ?`,
     [id]
@@ -67,9 +68,11 @@ async function createInvoice(sub, k) {
   await withTransaction(async (conn) => {
     const [ins] = await conn.execute(
       `INSERT INTO invoices (subscription_id, customer_id, status, period_start, period_end, invoice_date, due_date,
-                             customer_name, customer_email, plan_name, untaxed_total, discount_total, tax_total, total)
-       VALUES (?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [sub.id, sub.customer_id, start, end, start, due, sub.customer_name, sub.customer_email, sub.plan_name,
+                             customer_name, customer_email, customer_company, customer_phone, customer_address,
+                             plan_name, untaxed_total, discount_total, tax_total, total)
+       VALUES (?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [sub.id, sub.customer_id, start, end, start, due, sub.customer_name, sub.customer_email,
+        sub.customer_company ?? null, sub.customer_phone ?? null, sub.customer_address ?? null, sub.plan_name,
         result.totals.untaxed, result.totals.discount, result.totals.tax, result.totals.total]
     );
     const id = ins.insertId;
@@ -148,7 +151,8 @@ export async function generateDueInvoices({ now = new Date(), subscriptionId } =
 
 // ---- Reading ----
 
-const INVOICE_COLUMNS = `i.id, i.number, i.subscription_id, i.customer_id, i.status, i.customer_name, i.customer_email, i.plan_name,
+const INVOICE_COLUMNS = `i.id, i.number, i.subscription_id, i.customer_id, i.status, i.customer_name, i.customer_email,
+  i.customer_company, i.customer_phone, i.customer_address, i.plan_name,
   ${day('i.period_start')} AS period_start, ${day('i.period_end')} AS period_end, ${day('i.invoice_date')} AS invoice_date,
   ${day('i.due_date')} AS due_date, i.untaxed_total, i.discount_total, i.tax_total, i.total, i.amount_paid,
   DATE_FORMAT(i.sent_at, '%Y-%m-%dT%H:%i:%sZ') AS sent_at, s.number AS subscription_number`;
