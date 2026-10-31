@@ -1,3 +1,4 @@
+import { paddedId } from '../utils/numbers.js';
 import { query } from '../db.js';
 import { HttpError } from '../utils/errors.js';
 import { priceLine, today } from '../utils/pricing.js';
@@ -134,7 +135,7 @@ export async function insertLines(conn, subscriptionId, lines) {
 }
 
 export async function assignNumber(conn, id) {
-  await conn.execute("UPDATE subscriptions SET number = CONCAT('SUB-', LPAD(id, 5, '0')) WHERE id = ?", [id]);
+  await conn.execute(`UPDATE subscriptions SET number = CONCAT('SUB-', ${paddedId}) WHERE id = ?`, [id]);
 }
 
 // ---- Reading ----
