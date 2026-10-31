@@ -15,8 +15,12 @@ export default function Logo({ light = false, className = '' }) {
         />
         <circle cx="14" cy="14" r="2.6" fill="#F4F4F2" />
       </svg>
-      <span className={`font-display text-xl font-semibold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
-        Cadence
+      <span className="flex flex-col">
+        <span className={`font-display text-xl font-semibold leading-none tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
+          Cadence
+        </span>
+        {/* A short descriptor, so the name says what the product does. */}
+        <span className="mt-1 text-xs leading-none text-pine-300">Subscription billing</span>
       </span>
     </div>
   );
